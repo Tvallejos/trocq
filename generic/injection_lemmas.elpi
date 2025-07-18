@@ -1,0 +1,52 @@
+namespace derive.injections {
+
+/* for all projectors of type forall Args T, ret 
+generate
+
+forall Args1-> Args2-> (e : Kj args->1 = Kj args->2) argj
+
+Take an inductive Ind, 
+take its constructors global references,
+for each global reference GRK,
+Compute the number of arguments J for each GRK,
+for each ArgNumber in 1 to J+1, 
+get the Projector GRK ArgNumber, 
+Get the type ProjType, forall ArgTys Args Ind, ret 
+Return the processed Types */
+
+
+% Returns the list of projector of a constructor. 
+pred get-projectors i:constructor, i:int, i:int, o:list term.
+get-projectors _ Max Max [] :- !.
+get-projectors GRK J Max [P|PJs] :- 
+    I is J + 1,
+    %projK-db GRK I P,
+    projK-db GRK I P,
+    get-projectors GRK I Max PJs.
+
+pred for-K-get-projectors i:int, i:list constructor, i:list term, o:list (list term).
+for-K-get-projectors _ [] [] [] :- !.
+for-K-get-projectors TyParamNo [Kn|KNs] [KTy|KTys] [R|RS] :- 
+    coq.count-prods KTy ArgsParamNo,
+    ArgsNo is ArgsParamNo - TyParamNo,
+    get-projectors Kn 0 ArgsNo R,
+    for-K-get-projectors TyParamNo KNs KTys RS.
+
+pred main i:inductive, i:string, o:list prop.
+main GR Prefix Clauses :- std.spy-do! [
+%   GR is (global (indt Ind)),
+  Name is Prefix ^ "injections",
+  coq.ensure-fresh-global-id Name FName,
+  coq.env.indt GR _ TyParamNo _ _ KNs KTys,
+  for-K-get-projectors TyParamNo KNs KTys PJss,
+%   std.forall Clauses (x\
+%     coq.elpi.accumulate _ "derive.injections.db" (clause _ _ x)
+%   ),
+%   coq.env.add-const FName Body Type _ C,
+  Clauses = [], %[injections-done GR, injections GR (const C)],
+  std.forall Clauses (x\
+    coq.elpi.accumulate _ "derive.injections.db" (clause _ _ x)
+  ),
+].
+
+}
