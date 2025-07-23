@@ -77,14 +77,14 @@ craft-eq TyParam ArgNo (prod N T Bo) EqTy Left Right (prod N T x\ S x) :- !,
     coq.mk-app EqTy [x] NewEqTy,
     coq.mk-app Left [x] NewLeft,
     coq.mk-app Right [x] NewRight,
-    craft-eq M Argno (Bo x) NewEqTy NewLeft NewRight (S x).
+    craft-eq M ArgNo (Bo x) NewEqTy NewLeft NewRight (S x).
 
 pred build-type-K-injector i:int, i:inductive, i:constructor, i:int, i:term, i:list term, o:list term.
 build-type-K-injector _ _ _ _ _ [] [] :- !.
 build-type-K-injector TyParamNo GR Kn ArgNo KTy [PJ|PJs] [Eq|RS] :- std.do! [
-  duplicate-arguments TyParamNo ArgNo PJ _ _ S,
+  duplicate-arguments TyParamNo ArgNo PJ S,
   std.spy (craft-eq TyParamNo ArgNo S (global (indt GR)) (global (indc Kn)) (global (indc Kn)) Eq),
-  coq.typecheck Eq Ty ok,
+  coq.typecheck Eq _ ok,
   build-type-K-injector TyParamNo GR Kn ArgNo KTy PJs RS].
 
 pred build-types-injectors i:int, i: inductive, i:list constructor, i: list int, i:list (term), i:list (list term), o:list (list term).

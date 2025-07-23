@@ -104,7 +104,9 @@ Print nat_injections21.
 
 Elpi derive.projK list.
 Print projcons1.
-Fail Elpi derive.injections list.
+Elpi derive.injections list.
+Print list_injections21.
+Print list_injections22.
 
 Elpi Query lp:{{
 
