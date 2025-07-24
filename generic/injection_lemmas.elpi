@@ -59,11 +59,14 @@ duplicate-arguments N O (prod TyName TyArg T) (prod TyName TyArg S) :- !,
 % Ret is discarded and replaced by Left = Right
 pred craft-eq i:int, i:int, i:int, i:int, i:term, i:term, i:term, i:term, i:term, i:term, i:term, o:term.
 craft-eq 0 0 _ _ _ EqTy Left Right ConclEqTy ConclL ConclR R:-  !,
-  % R = (prod `e` AETy e\ ConclR),
   coq.mk-app {{lib:@elpi.eq}} [EqTy, Left, Right] AETy,
   coq.mk-app {{lib:@elpi.eq}} [ConclEqTy, ConclL, ConclR] C, 
-  R = {{ forall (e : lp:AETy), lp:C }},
-  coq.typecheck R _ ok.
+  % R = (prod `e` AETy e\ C),
+  R = {{ forall (e : lp:AETy), lp:C }}. 
+  % ,
+  % coq.say "R = " R,
+  % coq.typecheck R Ty ok,
+  % coq.say "Ty = " Ty.
 
 craft-eq 0 ArgNo J Max (prod N1 T x\ prod N2 T y\ (Bo x y)) EqTy Left Right ConclEq ConclL ConclR (prod N1 T x\ prod N2 T y\ (S x y)) :- !,
   M is ArgNo - 1,
@@ -72,12 +75,12 @@ craft-eq 0 ArgNo J Max (prod N1 T x\ prod N2 T y\ (Bo x y)) EqTy Left Right Conc
   @pi-decl N2 T y\
   sigma NewLeft NewRight NewConclEq NewConclL NewConclR\
     (if (J? = J)
-        (NewConclEq is T, 
-         NewConclL is x,
-         NewConclR is y)
-        (NewConclEq is ConclEq, 
-         NewConclL is ConclL,
-         NewConclR is ConclR)),
+        (NewConclEq = T, 
+         NewConclL = x,
+         NewConclR = y)
+        (NewConclEq = ConclEq, 
+         NewConclL = ConclL,
+         NewConclR = ConclR)),
     coq.mk-app Left [x] NewLeft,
     coq.mk-app Right [y] NewRight,
     craft-eq 0 M J Max (Bo x y) EqTy NewLeft NewRight NewConclEq NewConclL NewConclR (S x y).
@@ -98,6 +101,7 @@ build-type-K-injector TyParamNo J GR Kn ArgNo KTy [PJ|PJs] [Eq|RS] :- std.do! [
   duplicate-arguments TyParamNo ArgNo PJ S,
   std.spy (craft-eq TyParamNo ArgNo J ArgNo S (global (indt GR)) (global (indc Kn)) (global (indc Kn)) {{tt}} {{tt}} {{tt}} Eq),
   coq.typecheck Eq _ ok,
+  coq.say "Eq = " Eq,
   build-type-K-injector TyParamNo Jn GR Kn ArgNo KTy PJs RS].
 
 pred build-types-injectors i:int, i: inductive, i:list constructor, i: list int, i:list (term), i:list (list term), o:list (list term).
