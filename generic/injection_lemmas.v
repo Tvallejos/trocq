@@ -1,10 +1,11 @@
+From elpi.apps.derive.elpi Extra Dependency "injection.elpi" as injection.
 From elpi.apps.derive.elpi Extra Dependency "derive_hook.elpi" as derive_hook.
 From elpi.apps.derive.elpi Extra Dependency "derive_synterp_hook.elpi" as derive_synterp_hook.
 From Trocq Extra Dependency "injection_lemmas.elpi" as injections.
 
 From elpi Require Import elpi.
 From elpi.apps Require Import derive.legacy.
-From elpi.apps Require Import projK.
+From elpi.apps Require Import projK. 
 Unset Uniform Inductive Parameters. 
 Elpi Db derive.injections.db lp:{{
 
@@ -57,7 +58,7 @@ Elpi Program test lp:{{
 
 }}. *)
 
-Elpi Query lp:{{
+(* Elpi Query lp:{{
 
   coq.locate "list" (indt GR),
   coq.locate "nat" (indt GR2),
@@ -66,21 +67,26 @@ Elpi Query lp:{{
   %F1 = {{ fun (A : Type) => lp:{{global (indt GR)}} A }},
   %coq.typecheck F1 _ ok.
 
-}}.
+}}. *)
 
-(* Elpi Query lp:{{ 
+Elpi Query lp:{{ 
   
-  F = fun `A` {{ Type }} x\ {coq.mk-app (global (indt GR)) [x]},
+  F2 = {{ forall (A : Type), A }},
+  F = {{ fun (A : Type) (n : nat) => n + 1 }},
+  coq.say F,
+  coq.say F2.
+  %F = fun `A` {{ Type }} x\ {coq.mk-app (global (indt GR)) [x]},
   %F = fun `A` {{ Type }} x\ {{ lp:(global (indt GR)) lp:(x) }}, 
   coq.typecheck F _ ok.
  
   (* coq.say F. *)
-}}. *)
+}}.
 
 Elpi Command derive.injections.
 Elpi Accumulate File derive_hook.
 Elpi Accumulate Db Header derive.projK.db.
 Elpi Accumulate Db derive.projK.db.
+Elpi Accumulate File injection.
 Elpi Accumulate File injections.
 Elpi Accumulate Db derive.injections.db.
 Elpi Accumulate lp:{{
@@ -97,6 +103,13 @@ Elpi Accumulate lp:{{
   usage :- coq.error "Usage: derive.injections <object name>".
 }}. 
 Elpi Trace Browser.
+
+Inductive Wrap : Type :=
+| W : unit -> Wrap.
+Elpi derive.projK Wrap.
+Print projW1.
+Elpi derive.injections Wrap.
+Print Wrap_injections11.
 
 Elpi derive.projK nat.
 Elpi derive.injections nat.
@@ -143,6 +156,11 @@ Elpi derive.injections list.
 Print list_injections21.
 Print list_injections22.
 
+Goal (forall (A : Type) (_1 _2 : A) (H1 H2 : list A),
+(_1 :: H1)%list = (_2 :: H2)%list -> H1 = H2).
+Proof.
+exact list_injections22.
+Qed.
 Elpi Query lp:{{
 
   projK-db _ B _, 
