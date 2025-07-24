@@ -61,12 +61,7 @@ pred craft-eq i:int, i:int, i:int, i:int, i:term, i:term, i:term, i:term, i:term
 craft-eq 0 0 _ _ _ EqTy Left Right ConclEqTy ConclL ConclR R:-  !,
   coq.mk-app {{lib:@elpi.eq}} [EqTy, Left, Right] AETy,
   coq.mk-app {{lib:@elpi.eq}} [ConclEqTy, ConclL, ConclR] C, 
-  % R = (prod `e` AETy e\ C),
   R = {{ forall (e : lp:AETy), lp:C }}. 
-  % ,
-  % coq.say "R = " R,
-  % coq.typecheck R Ty ok,
-  % coq.say "Ty = " Ty.
 
 craft-eq 0 ArgNo J Max (prod N1 T x\ prod N2 T y\ (Bo x y)) EqTy Left Right ConclEq ConclL ConclR (prod N1 T x\ prod N2 T y\ (S x y)) :- !,
   M is ArgNo - 1,
@@ -101,7 +96,6 @@ build-type-K-injector TyParamNo J GR Kn ArgNo KTy [PJ|PJs] [Eq|RS] :- std.do! [
   duplicate-arguments TyParamNo ArgNo PJ S,
   std.spy (craft-eq TyParamNo ArgNo J ArgNo S (global (indt GR)) (global (indc Kn)) (global (indc Kn)) {{tt}} {{tt}} {{tt}} Eq),
   coq.typecheck Eq _ ok,
-  coq.say "Eq = " Eq,
   build-type-K-injector TyParamNo Jn GR Kn ArgNo KTy PJs RS].
 
 pred build-types-injectors i:int, i: inductive, i:list constructor, i: list int, i:list (term), i:list (list term), o:list (list term).
@@ -116,7 +110,10 @@ name-injector _ _ _ _ _ [] 0.
 name-injector FName I J GR Kn [InjTy|InjTyss] R :-
   Jn is J + 1,
   NameIJ is {std.any->string FName} ^ {std.any->string I} ^ {std.any->string J},
-  coq.env.add-const NameIJ InjTy {{ Type }} _ C,
+  coq.typecheck InjTy InjTyTy ok,
+  coq.say "InjTy =" InjTy,
+  coq.say "InjTyTy =" InjTyTy,
+  coq.env.add-const NameIJ InjTy _ _ C,
   name-injector FName I Jn GR Kn InjTyss R.
 
 pred name-injectors i:string, i:int, i:inductive, i:list constructor, i:list (list term), o:int.
@@ -125,6 +122,56 @@ name-injectors FName I GR [Kn | KNs] [InjTys | InjTyss] R :-
   In is I + 1,
   name-injector FName I 1 GR Kn InjTys R,
   name-injectors FName In GR KNs InjTyss R.
+  
+  
+pred implement-K-injector-J i:int, i:int, i:int, i:int, i:term, o:term.
+  % implement-K-injector-J _ _ _ _ T T.
+implement-K-injector-J 0 J 0 TyParam (prod E Ty _) R :- !,
+  I is J - 1,
+  coq.say "PL = " PL,
+  coq.say "R in implement" R,
+  R = {{ fun e:(lp:Ty) => lp:(PL e) }},
+  @pi-decl E Ty e\
+  % sigma R\
+    sigma GR TyArgs GRK KArgs A B\
+    ltac.injection? Ty GR TyArgs GRK KArgs A B,
+    coq.say "GR" GR "TyArgs = " TyArgs "GRK = " GRK "KArgs = " KArgs "A = " A "B = " B,
+    ltac.injection.arg-i I J {{lib:@elpi.derive.eq_f}} GR TyArgs TyParam GRK KArgs A B e [(PL e)],
+    coq.say "PL = " PL,
+    % coq.typecheck PL PLTy ok,
+    % coq.say "PLTy = " PLTy,
+    coq.say "R in sigma implement" R.
+    % coq.typecheck R RTy ok.
+    % coq.say "R final =" R,
+    % coq.say "RTy = " RTy.
+
+implement-K-injector-J 0 J ArgNo TyParam (prod ArgN1 ArgTy a\ (prod ArgN2 ArgTy b\ (Bo a b))) (fun ArgN1 ArgTy a\ fun ArgN2 ArgTy b\ (R a b) ) :- !,
+  ArgNon is ArgNo - 1,
+  @pi-decl ArgN1 ArgTy a\
+  @pi-decl ArgN2 ArgTy b\
+    implement-K-injector-J 0 J ArgNon TyParam (Bo a b) (R a b).
+
+implement-K-injector-J ParamNo J ArgNo TyParam (prod TyArg T t\ (Bo t)) (fun TyArg T t\ (R t) ) :- !,
+  ParamNon is ParamNo - 1,
+  @pi-decl TyArg T t\
+    implement-K-injector-J ParamNon J ArgNo TyParam (Bo t) (R t).
+  
+pred implement-K-injectors i:int, i:int, i:int, i:list term, o:list term.
+implement-K-injectors _ _ _ [] [].
+implement-K-injectors TyParam J ArgNo [InjTy | InjTys] [R | RS] :-
+  Jn is J + 1,
+  coq.say "implementing" InjTy,
+  std.spy (implement-K-injector-J TyParam J ArgNo TyParam InjTy R), 
+  coq.say "Implemented R " R,
+  coq.typecheck R InjTy ok,
+  coq.say "R typechecked InjTy ",
+  implement-K-injectors TyParam Jn ArgNo InjTys RS.
+
+pred implement-injectors i:int, i:list int, i:list (list term), o:list (list term).
+implement-injectors _ _ [] [].
+implement-injectors TyParam [ArgNo | ArgNos] [InjTys | InjTyss] [R | RS ] :-
+  implement-K-injectors TyParam 1 ArgNo InjTys R,
+  implement-injectors TyParam ArgNos InjTyss RS.
 
 pred main i:inductive, i:string, o:list prop.
 main GR Prefix Clauses :- std.do! [
@@ -134,7 +181,8 @@ main GR Prefix Clauses :- std.do! [
   for-K-get-projectors TyParamNo KNs KTys ArgsNos PJss,
   std.map PJss (x\ r\ sigma R\ (std.map x (y\ r\ sigma Ty\ coq.typecheck y Ty _, r = Ty) R), r = R) PJTyss,
   build-types-injectors TyParamNo GR KNs ArgsNos KTys PJTyss InjTyss,
-  name-injectors FName 1 GR KNs InjTyss Ans,
+  implement-injectors TyParamNo ArgsNos InjTyss Injss,
+  name-injectors FName 1 GR KNs Injss _,
 %   TTT is {{lib:@elpi.derive.eq_f}},
 %   coq.say TTT,
 %   std.forall Clauses (x\
