@@ -5,7 +5,7 @@ From Trocq Extra Dependency "injection_lemmas.elpi" as injections.
 From elpi Require Import elpi.
 From elpi.apps Require Import derive.legacy.
 From elpi.apps Require Import projK.
-
+Unset Uniform Inductive Parameters. 
 Elpi Db derive.injections.db lp:{{
 
   % [injections I K ILs] links I, 
@@ -101,6 +101,40 @@ Elpi Trace Browser.
 Elpi derive.projK nat.
 Elpi derive.injections nat.
 Print nat_injections21.
+
+Elpi derive.projK option.
+Print projSome1.
+Elpi derive.injections option.
+Print option_injections11.
+
+Inductive enum : Type :=
+| Constructor : unit -> bool -> enum.
+
+Elpi derive.projK enum.
+Print projConstructor1.
+Print projConstructor2.
+Elpi derive.injections enum.
+Print enum_injections11.
+Print enum_injections12.
+
+Inductive enum2 : Type :=
+| Nol : enum2
+| Constructor2 : unit -> bool -> enum2.
+
+Elpi derive.projK enum2.
+Print projConstructor21.
+Print projConstructor22.
+Elpi derive.injections enum2.
+Print enum2_injections21.
+Print enum2_injections22.
+
+Inductive Losts (T : Type) : Type :=
+| Conse : Losts T -> Losts T .
+
+Elpi derive.projK Losts.
+Print projConse1.
+Elpi derive.injections Losts.
+Print Losts_injections11.
 
 Elpi derive.projK list.
 Print projcons1.
