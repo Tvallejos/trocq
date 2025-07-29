@@ -27,3 +27,5 @@ theories/Param_Empty.v
 theories/Param_list.v
 theories/param2_inhab.v
 theories/test_param2_inhab.v
+theories/injection_lemmas.v
+theories/mymap.v
