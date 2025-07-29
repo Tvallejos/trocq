@@ -1,0 +1,51 @@
+namespace derive.mR {
+
+% Type of inductive T,
+% Type of bin parametricity translation TR,
+% ML LHS of map equality
+% MR RHS of map equality
+% Rel type of TR applied to arguments
+% Returns the type of map in R
+pred mk-mR-type i:int, i:term, i:term, i:term, i:term, o:term.
+mk-mR-type 0 (sort _) ML MR Rel (prod `_` {{ lp:ML  = lp:MR }} _\ Rel).
+mk-mR-type 0 (prod N1 Ty t1\ prod N2 Ty2 t2\ (Bo t1 t2)) ML _ Rel (prod N1 Ty t1\ prod N2 Ty2 t2\ (R t1 t2)) :-
+  pi t1 t2\
+    sigma NewML NewMR NewRel\
+      coq.mk-app ML [t1] NewML, 
+      NewMR = t2,
+      coq.mk-app Rel [t1,t2] NewRel,
+    mk-mR-type 0 (Bo t1 t2) NewML NewMR NewRel (R t1 t2).
+mk-mR-type N (prod N1 Ty t1\ prod N2 Ty2 t2\ prod N3 _ t3\ (Bo t1 t2 t3)) ML _ Rel (prod N1 Ty t1\ prod N2 Ty2 t2\ prod N3 {{ Param2a0.Rel lp:t1 lp:t2 }} t3\ (R t1 t2 t3)) :-
+  M is N - 1, 
+  pi t1 t2 t3\
+    sigma NewML NewMR NewRel\
+      coq.mk-app ML [t1, t2, t3] NewML, 
+      NewMR = t2,
+      coq.mk-app Rel [t1,t2,t3] NewRel,
+    mk-mR-type M (Bo t1 t2 t3) NewML NewMR NewRel (R t1 t2 t3).
+% mk-mR-type T TRTy M Rel R :-.
+
+pred main i:inductive, i:string, o:list prop.
+main GR Prefix Clauses :- std.do! [
+%   ... % synthesize Body and Type
+  Name is Prefix ^ "myconcept",
+  coq.env.indt GR _ UnifParamNo _ Arity KNs KTys,
+  Ind = (global (indt GR)),
+  param Ind Ind TR,
+  coq.typecheck TR TRTy _,
+  mymap-def GR IndMap,
+  mk-mR-type UnifParamNo TRTy IndMap {{ Type }} TR R,
+  coq.elaborate-skeleton R _ RE ok,
+  coq.say "Generated Type R := " R,
+  coq.say "Generated Type RE := " RE,
+  coq.say GR UnifParamNo Arity KNs KTys,
+  coq.ensure-fresh-global-id Name FName,
+%   coq.env.add-const FName Body Type _ C,
+%   Clauses = [mR-done GR, mR-db GR (global (const C))],
+  Clauses = [],
+  std.forall Clauses (x\
+    coq.elpi.accumulate _ "derive.mR.db" (clause _ _ x)
+  ),
+].
+
+}
