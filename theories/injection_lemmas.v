@@ -10,76 +10,14 @@ Unset Uniform Inductive Parameters.
 Elpi Db derive.injections.db lp:{{
 
   % [injections I K ILs] links I, 
-  %  an inductive type, 
+  %  constructor inductive type, 
   %  and K, 
   %  a natural number > 0 (representing the constructor number)
   %  with the list of injection lemmas for that constructor
-  pred injections i:gref, i:int, o:gref.
+  pred injections-db i:constructor, i:int, o:term.
 
   % [injections-done T K] means T K was already derived
-  pred injections-done o:gref o:int.
-}}.
-
-Elpi Program test lp:{{ 
-  kind  term  type.
-  type  app   term -> term -> term.
-  type  fun   (term -> term) -> term.
-
-  kind  ty   type.           % the data type of types
-  type  arr  ty -> ty -> ty. % our type constructor
-
-  pred of i:term, o:ty. % the type checking algorithm
-  of (app X Y) B :- 
-    of X (arr A B), 
-    of Y A.
-  of (fun Bo) (arr A B) :-
-  pi x\
-    of x A ==>
-    of (Bo x) B.
-
-}}.
-(* Elpi Query lp:{{
-  coq.locate "list" (indt GR),
-  coq.locate "nat" (indt GR2),
-
-  coq.mk-apps (global (indt GR)) [global (indt GR2)] ListNat,
-
-  coq.say "list nat:" ListNat
-}}. *)
-
-(* Elpi Query lp:{{
-  coq.locate "list" (indt GR),
-  coq.locate "nat" (indt GR2),
-  L is (global (indt GR)),
-  N is (global (indt GR2)),
-  coq.mk-app L [N] ListNat,
-  %coq.say EQ,
-  coq.say ListNat.
-
-}}. *)
-
-(* Elpi Query lp:{{
-
-  coq.locate "list" (indt GR),
-  coq.locate "nat" (indt GR2),
-  %
-  coq.say R.
-  %F1 = {{ fun (A : Type) => lp:{{global (indt GR)}} A }},
-  %coq.typecheck F1 _ ok.
-
-}}. *)
-
-Elpi Query lp:{{ 
-  
-  F2 = {{ forall (A : Type), A }},
-  F = {{ fun (A : Type) (n : nat) => n + 1 }},
-  coq.say F,
-  coq.say F2.
-  %F = fun `A` {{ Type }} x\ {coq.mk-app (global (indt GR)) [x]},
-  %F = fun `A` {{ Type }} x\ {{ lp:(global (indt GR)) lp:(x) }}, 
-  coq.typecheck F _ ok.
- 
-  (* coq.say F. *)
+  pred injections-done o:inductive. 
 }}.
 
 Elpi Command derive.injections.
@@ -87,8 +25,8 @@ Elpi Accumulate File derive_hook.
 Elpi Accumulate Db Header derive.projK.db.
 Elpi Accumulate Db derive.projK.db.
 Elpi Accumulate File injection.
-Elpi Accumulate File injections.
 Elpi Accumulate Db derive.injections.db.
+Elpi Accumulate File injections.
 Elpi Accumulate lp:{{
   
   main [str I] :- !, 
@@ -141,7 +79,7 @@ Elpi derive.injections enum2.
 Print enum2_injections21.
 Print enum2_injections22.
 
-Inductive Losts (T : Type) : Type :=
+Inductive Losts (T : Prop) : Prop :=
 | Conse : Losts T -> Losts T .
 
 Elpi derive.projK Losts.
@@ -155,15 +93,13 @@ Print projcons2.
 Elpi derive.injections list.
 Print list_injections21.
 Print list_injections22.
-
+Elpi Query lp:{{
+    std.findall (injections-db _ _ _) Rules.
+    std.findall (injections-done _) Rules.
+    std.findall (projK-db _ _ _) Rules.
+}}. 
 Goal (forall (A : Type) (_1 _2 : A) (H1 H2 : list A),
 (_1 :: H1)%list = (_2 :: H2)%list -> H1 = H2).
 Proof.
 exact list_injections22.
 Qed.
-Elpi Query lp:{{
-
-  projK-db _ B _, 
-  coq.say "Constructor " B ""
-
-}}.

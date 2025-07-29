@@ -105,45 +105,33 @@ build-types-injectors TyParamNo GR [Kn|KNs] [ArgNo|ArgsNos] [KTy|KTys] [PJs|PJss
   build-types-injectors TyParamNo GR KNs ArgsNos KTys PJss RS.
     % build-types-injectors Kn PJs R, 
 
-pred name-injector i:string, i:int, i:int, i:inductive, i:constructor, i:list term, o:int.
-name-injector _ _ _ _ _ [] 0. 
-name-injector FName I J GR Kn [InjTy|InjTyss] R :-
+pred name-injector i:string, i:int, i:int, i:inductive, i:constructor, i:list term, o:list prop.
+name-injector _ _ _ _ _ [] []. 
+name-injector FName I J GR Kn [InjTy|InjTyss] [Clause|Clauses] :-
   Jn is J + 1,
   NameIJ is {std.any->string FName} ^ {std.any->string I} ^ {std.any->string J},
-  coq.typecheck InjTy InjTyTy ok,
-  coq.say "InjTy =" InjTy,
-  coq.say "InjTyTy =" InjTyTy,
   coq.env.add-const NameIJ InjTy _ _ C,
-  name-injector FName I Jn GR Kn InjTyss R.
+  % Clause = (injections-db Kn J (global (const C)) :- !),
+  Clause = (injections-db Kn J (global (const C))),
+  name-injector FName I Jn GR Kn InjTyss Clauses.
 
-pred name-injectors i:string, i:int, i:inductive, i:list constructor, i:list (list term), o:int.
-name-injectors _ _ _ [] [] 0.
-name-injectors FName I GR [Kn | KNs] [InjTys | InjTyss] R :-
+pred name-injectors i:string, i:int, i:inductive, i:list constructor, i:list (list term), o:list (list prop).
+name-injectors _ _ _ [] [] [].
+name-injectors FName I GR [Kn | KNs] [InjTys | InjTyss] [Clauses | Clausess] :-
   In is I + 1,
-  name-injector FName I 1 GR Kn InjTys R,
-  name-injectors FName In GR KNs InjTyss R.
+  name-injector FName I 1 GR Kn InjTys Clauses,
+  name-injectors FName In GR KNs InjTyss Clausess.
   
   
 pred implement-K-injector-J i:int, i:int, i:int, i:int, i:term, o:term.
   % implement-K-injector-J _ _ _ _ T T.
 implement-K-injector-J 0 J 0 TyParam (prod E Ty _) R :- !,
   I is J - 1,
-  coq.say "PL = " PL,
-  coq.say "R in implement" R,
   R = {{ fun e:(lp:Ty) => lp:(PL e) }},
   @pi-decl E Ty e\
-  % sigma R\
     sigma GR TyArgs GRK KArgs A B\
     ltac.injection? Ty GR TyArgs GRK KArgs A B,
-    coq.say "GR" GR "TyArgs = " TyArgs "GRK = " GRK "KArgs = " KArgs "A = " A "B = " B,
-    ltac.injection.arg-i I J {{lib:@elpi.derive.eq_f}} GR TyArgs TyParam GRK KArgs A B e [(PL e)],
-    coq.say "PL = " PL,
-    % coq.typecheck PL PLTy ok,
-    % coq.say "PLTy = " PLTy,
-    coq.say "R in sigma implement" R.
-    % coq.typecheck R RTy ok.
-    % coq.say "R final =" R,
-    % coq.say "RTy = " RTy.
+    ltac.injection.arg-i I J {{lib:@elpi.derive.eq_f}} GR TyArgs TyParam GRK KArgs A B e [(PL e)].
 
 implement-K-injector-J 0 J ArgNo TyParam (prod ArgN1 ArgTy a\ (prod ArgN2 ArgTy b\ (Bo a b))) (fun ArgN1 ArgTy a\ fun ArgN2 ArgTy b\ (R a b) ) :- !,
   ArgNon is ArgNo - 1,
@@ -160,11 +148,8 @@ pred implement-K-injectors i:int, i:int, i:int, i:list term, o:list term.
 implement-K-injectors _ _ _ [] [].
 implement-K-injectors TyParam J ArgNo [InjTy | InjTys] [R | RS] :-
   Jn is J + 1,
-  coq.say "implementing" InjTy,
   std.spy (implement-K-injector-J TyParam J ArgNo TyParam InjTy R), 
-  coq.say "Implemented R " R,
   coq.typecheck R InjTy ok,
-  coq.say "R typechecked InjTy ",
   implement-K-injectors TyParam Jn ArgNo InjTys RS.
 
 pred implement-injectors i:int, i:list int, i:list (list term), o:list (list term).
@@ -182,15 +167,16 @@ main GR Prefix Clauses :- std.do! [
   std.map PJss (x\ r\ sigma R\ (std.map x (y\ r\ sigma Ty\ coq.typecheck y Ty _, r = Ty) R), r = R) PJTyss,
   build-types-injectors TyParamNo GR KNs ArgsNos KTys PJTyss InjTyss,
   implement-injectors TyParamNo ArgsNos InjTyss Injss,
-  name-injectors FName 1 GR KNs Injss _,
+  name-injectors FName 1 GR KNs Injss Clausess,
 %   TTT is {{lib:@elpi.derive.eq_f}},
 %   coq.say TTT,
 %   std.forall Clauses (x\
 %     coq.elpi.accumulate _ "derive.injections.db" (clause _ _ x)
 %   ),
 %   coq.env.add-const FName Body Type _ C,
-  Clauses = [], %[injections-done GR, injections GR (const C)],
-  std.forall Clauses (x\
+  std.flatten Clausess Clauses,
+  ClausesFin = [injections-done GR | Clauses], %[injections-done GR, injections GR (const C)],
+  std.forall ClausesFin (x\
     coq.elpi.accumulate _ "derive.injections.db" (clause _ _ x)
   ),
 ].
