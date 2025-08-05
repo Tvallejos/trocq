@@ -2,7 +2,7 @@ From elpi.apps.derive.elpi Extra Dependency "derive_hook.elpi" as derive_hook.
 From elpi.apps.derive.elpi Extra Dependency "param2.elpi" as param2.
 From elpi.apps.derive.elpi Extra Dependency "discriminate.elpi" as discr.
 From Trocq Extra Dependency "mR.elpi" as mR.
-From Trocq Require Import Hierarchy mymap.
+From Trocq Require Import Hierarchy mymap injection_lemmas.
 
 From elpi Require Import elpi.
 From elpi.apps Require Import derive.param2 derive.isK.
@@ -11,6 +11,8 @@ From elpi.apps Require Import derive.bcongr (* for eq_f register *)
                               derive.isK. (* for isK db required by discriminate *)
 
 Elpi Db derive.mR.db lp:{{
+  % [ar-db A1 A2 AR] returns the relation between a type A1 and A2.
+  pred ar-db i:term, i:term, o:term. 
   % [mR-db T D] links a type T to its corresponding map in R.
   pred mR-db i:term, o:term.
 
@@ -26,8 +28,9 @@ Elpi Accumulate Db derive.param2.db.
 Elpi Accumulate Db derive.mymap.db.
 Elpi Accumulate File discr.
 Elpi Accumulate Db derive.isK.db.
-Elpi Accumulate File mR.
+Elpi Accumulate Db derive.injections.db.
 Elpi Accumulate Db derive.mR.db.
+Elpi Accumulate File mR.
 Elpi Accumulate lp:{{
   main [str I] :- !, coq.locate I (indt GR),
     coq.gref->id (indt GR) Tname,
@@ -45,6 +48,7 @@ Goal forall (A B : Type) (R : Param10.Rel A B), A -> B.
 intros A B R. Fail exact R. exact (map R). Abort.
 
 
+Elpi Trace Browser.
 Elpi derive "unit".
 Print unit_R.
 Elpi derive.mymap unit.
@@ -56,10 +60,18 @@ Print bool_R.
 Search "R" bool.
 Elpi derive.mymap bool.
 Fail Elpi derive.param2 bool.
-Elpi Trace Browser.
 Elpi derive.isK bool.
 Elpi derive.mR bool.
 Print bool_mR.
+
+Inductive Wrap : Type :=
+| KWrap1 : unit -> Wrap.
+
+Elpi derive.param2 Wrap.
+Elpi derive.mymap Wrap.
+Elpi derive.projK Wrap.
+Elpi derive.injections Wrap.
+Elpi derive.mR Wrap.
 
 Elpi derive.param2 nat.
 Elpi derive.mymap nat.
