@@ -1,48 +1,113 @@
 namespace derive.mR {
 
+% The number of Type parameters in T
 % Type of inductive T,
 % Type of bin parametricity translation TR,
 % ML LHS of map equality
 % MR RHS of map equality
 % Rel type of TR applied to arguments
-% Returns the type of map in R
+% Returns the type of map in R for T
+% X is the first inductive, Y is the second inductive. 
 pred mk-mR-type i:int, i:term, i:term, i:term, i:term, o:term.
+% Reached a sort, return map L = R -> IR.
 mk-mR-type 0 (sort _) ML MR Rel (prod `_` {{ lp:ML  = lp:MR }} _\ Rel).
-mk-mR-type 0 (prod N1 Ty t1\ prod N2 Ty2 t2\ (Bo t1 t2)) ML _ Rel (prod N1 Ty t1\ prod N2 Ty2 t2\ (R t1 t2)) :-
-  pi t1 t2\
+% Introducing X and Y.
+% The RHS of the equality is Y.
+mk-mR-type 0 (prod IN1 ITyTy x\ prod IN2 ITyTy2 y\ (Bo x y)) ML _ Rel (prod IN1 ITyTy x\ prod IN2 ITyTy2 y\ (R x y)) :-
+  pi x y\
     sigma NewML NewMR NewRel\
-      coq.mk-app ML [t1] NewML, 
-      NewMR = t2,
-      coq.mk-app Rel [t1,t2] NewRel,
-    mk-mR-type 0 (Bo t1 t2) NewML NewMR NewRel (R t1 t2).
-mk-mR-type N (prod N1 Ty t1\ prod N2 Ty2 t2\ prod N3 _ t3\ (Bo t1 t2 t3)) ML _ Rel (prod N1 Ty t1\ prod N2 Ty2 t2\ prod N3 {{ Param2a0.Rel lp:t1 lp:t2 }} t3\ (R t1 t2 t3)) :-
+      coq.mk-app ML [x] NewML, 
+      NewMR = y,
+      coq.mk-app Rel [x,y] NewRel,
+    mk-mR-type 0 (Bo x y) NewML NewMR NewRel (R x y).
+% Process two type parameters + 1 relation at a time.
+% Apply these parameters to the LHS of the equation.
+mk-mR-type N (prod AN1 ATy1 a1\ prod AN2 ATy2 a2\ prod ARN _ ar\ (Bo a1 a2 ar)) ML _ Rel 
+             (prod AN1 ATy1 a1\ prod AN2 ATy2 a2\ prod N3 {{ Param2a0.Rel lp:a1 lp:a2 }} ar\ (R a1 a2 ar)) :-
   M is N - 1, 
-  pi t1 t2 t3\
+  pi a1 a2 ar\
     sigma NewML NewMR NewRel\
-      coq.mk-app ML [t1, t2, t3] NewML, 
-      NewMR = t2,
-      coq.mk-app Rel [t1,t2,t3] NewRel,
-    mk-mR-type M (Bo t1 t2 t3) NewML NewMR NewRel (R t1 t2 t3).
-% mk-mR-type T TRTy M Rel R :-.
+      coq.mk-app ML [a1, a2, ar] NewML, 
+      NewMR = a2,
+      coq.mk-app Rel [a1,a2,ar] NewRel,
+    mk-mR-type M (Bo a1 a2 ar) NewML NewMR NewRel (R a1 a2 ar).
+
+% Given Y and Bo: x\ y\ RT. The return type of the match on X is: substituting the binder of X in the match.
+pred rty-1 i:(term -> term -> term), i:term , i:term, i: list term, i: list term, o:term.
+rty-1 Bo Y _ Ts _ R :- 
+  std.last Ts X,
+  R = Bo X Y.
+
+% Given X and Bo: x\ y\ RT. The return type of the match on Y is: substituting the binder of Y in the match.
+pred rty-2 i:(term -> term -> term), i:term , i:term, i: list term, i: list term, o:term.
+rty-2 Bo X _ Ts _ R :-
+  std.last Ts Y,
+  R = Bo X Y.
+
+% Each branch matches on Y as Y0, returning a term of type (Bo (K KArgs) Y0) given by matrix.
+pred mkBranch i:(term -> term -> term), i:term, i:term, i:term, i:term, i:list term, i:list term, o:term.
+mkBranch Bo Y YTy K _ Ts TYs R :-
+  coq.mk-app K Ts X,
+  coq.build-match Y YTy (rty-2 Bo X) (k2\ _\ ts\ tys\ matrix K Ts TYs k2 ts tys Bo) R.
+
+% TODO: for processing params extend with an int of param no + db Type Type AR.
+% TODO: for processing contained types, lookup mR-db apply arg1 arg2 + the ith constructor injection of the equality.
+pred apply-indR i:term, i:list term, i:list term, i:term, i:term, o: term.
+apply-indR K [A1|Args1] [A2|Args2] LHS RHS R :-
+  coq.mk-app K [A1,A2] KK,
+  apply-indR KK Args1 Args2 LHS RHS R. 
+apply-indR K [] [] LHS RHS (fun `e` {{lp:LHS = lp:RHS }} e\ K). 
+
+% On the diagonal return KR a1 a2 ... 
+% Outside the diagonal discriminate
+pred matrix i: term, i:list term, i:list term, i:term, i:list term, i:list term, 
+    i:(term -> term -> term), o:term.
+matrix K1 KArgs1 _ K1 KArgs2 _ _ R :-
+  !,
+  coq.say "Same constructor K1" K1,
+  param K1 K1 KR,
+  coq.mk-app K1 KArgs1 LHS,
+  coq.mk-app K1 KArgs2 RHS,
+  %TODO: recover equality from Bo and pass it to apply-indR
+  apply-indR KR KArgs1 KArgs2 LHS RHS R.
+
+matrix K1 KArgs1 _ K2 KArgs2 _ Bo (fun `e` EqAB e\ R e) :-
+  !,
+  coq.mk-app K1 KArgs1 X,
+  coq.mk-app K2 KArgs2 Y,
+  coq.say "Different constructor K1= " K1 "K2 = " K2 "X = " X "Y = " Y,
+  BoXY = Bo X Y,
+  coq.elaborate-skeleton BoXY _ BoXYE _,
+  BoXYE = prod _ EqAB G,
+  @pi-decl `e` EqAB e\
+    ltac.discriminate e EqAB (G e) (R e).
+
+pred implement-mR i:int, i:term, o:term.
+% all TyParams processed, 
+% remains forall (i1: I Args1) (i2 : I Args2), map -> IR
+% Bo is i1\ i2\               mapI Args1 Args2 ARs i1 = i2 -> IR Args1i Args2i ARsi i1 i2.
+implement-mR 0 (prod I1 I1Ty i1\ prod I2 I2Ty i2\ (Bo i1 i2)) (fun I1 I1Ty i1\ fun I2 I2Ty i2\ (R i1 i2)) :-
+  @pi-decl I1 I1Ty i1\
+  @pi-decl I2 I2Ty i2\
+    coq.build-match i1 I2Ty (rty-1 Bo i2) (mkBranch Bo i2 I2Ty) (R i1 i2).
 
 pred main i:inductive, i:string, o:list prop.
 main GR Prefix Clauses :- std.do! [
-%   ... % synthesize Body and Type
-  Name is Prefix ^ "myconcept",
+  Name is Prefix ^ "mR",
   coq.env.indt GR _ UnifParamNo _ Arity KNs KTys,
   Ind = (global (indt GR)),
   param Ind Ind TR,
   coq.typecheck TR TRTy _,
   mymap-def GR IndMap,
-  mk-mR-type UnifParamNo TRTy IndMap {{ Type }} TR R,
-  coq.elaborate-skeleton R _ RE ok,
-  coq.say "Generated Type R := " R,
-  coq.say "Generated Type RE := " RE,
-  coq.say GR UnifParamNo Arity KNs KTys,
+  mk-mR-type UnifParamNo TRTy IndMap {{ Type }} TR MRTy,
+  coq.elaborate-skeleton MRTy _ MRTyE ok,
+  implement-mR UnifParamNo MRTyE T,
+  coq.elaborate-skeleton T MRTyE TE ok,
+  coq.say "implemented type MRTyE " MRTyE "as " TE,
   coq.ensure-fresh-global-id Name FName,
-%   coq.env.add-const FName Body Type _ C,
-%   Clauses = [mR-done GR, mR-db GR (global (const C))],
-  Clauses = [],
+  coq.env.add-const Name TE MRTyE _ C,
+  I = global (indt GR),
+  Clauses = [mR-done I, mR-db I (global (const C))],
   std.forall Clauses (x\
     coq.elpi.accumulate _ "derive.mR.db" (clause _ _ x)
   ),
