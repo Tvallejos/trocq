@@ -10,6 +10,8 @@ From elpi.apps Require Import derive.bcongr (* for eq_f register *)
                               derive.eqK (*for bool_discr *)
                               derive.isK. (* for isK db required by discriminate *)
 
+Unset Uniform Inductive Parameters. 
+
 Elpi Db derive.mR.db lp:{{
   % [ar-db A1 A2 AR] returns the relation between a type A1 and A2.
   pred ar-db i:term, i:term, o:term. 
@@ -102,22 +104,47 @@ Elpi derive.mymap nat.
 Elpi derive.isK nat.
 Elpi derive.mR nat.
 
+Inductive Box (A : Type) :=
+| B : A -> Box A.
+
+Elpi derive.param2 Box.
+Elpi derive.mymap Box.
+Elpi derive.projK Box.
+Elpi derive.injections Box.
+Elpi derive.isK Box.
+Elpi derive.mR Box.
+
 Elpi derive.param2 option.
 Elpi derive.mymap option.
+Elpi derive.projK option.
+Elpi derive.injections option.
+Elpi derive.isK option.
 Elpi derive.mR option.
+Print option_mR.
+
+Elpi derive.param2 prod.
+Elpi derive.mymap prod.
+Elpi derive.projK prod.
+Elpi derive.injections prod.
+Elpi derive.isK prod.
+Elpi derive.mR prod.
+Print option_mR.
+
+Fail Elpi derive.param2 list.
+Elpi derive.mymap list.
+Elpi derive.projK list.
+Elpi derive.injections list.
+Elpi derive.isK list.
+Elpi derive.mR list.
+Print list_mR.
 
 (* Elpi derive.param2 list. *)
 Elpi derive.mymap list.
 Elpi derive.mR list.
 
-Elpi derive.param2 prod.
-Elpi derive.mymap prod.
-Elpi derive.mR prod.
 
 Elpi derive.isK nat.
 Elpi derive.isK option.
-Print option_is_Some.
-Print option_is_None.
 Elpi derive.isK list.
 
 Print option_R.
