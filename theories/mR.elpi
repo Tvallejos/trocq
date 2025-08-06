@@ -155,7 +155,18 @@ pred implement-mR i:int, i:int, i:term, o:term.
 % remains forall (i1: I Args1) (i2 : I Args2), map -> IR
 % Bo is i1\ i2\               mapI Args1 Args2 ARs i1 = i2 -> IR Args1i Args2i ARsi i1 i2.
 % todo: Carry the list of TyArgs, needed for apply-ind params.
+implement-mR 0 TyParamNo (prod I1 I1Ty i1\ prod I2 I2Ty i2\ (Bo i1 i2)) (fix `f` 0 RT f\ fun I1 I1Ty i1\ fun I2 I2Ty i2\ (R f i1 i2)) :-
+  Ind = (global (indt GR)),
+  coq.safe-dest-app I1Ty Ind _, 
+  coq.env.recursive? GR, !,
+  RT = (prod I1 I1Ty i1\ prod I2 I2Ty i2\ (Bo i1 i2)),
+  @pi-decl `f` RT f\
+  @pi-decl I1 I1Ty i1\
+  @pi-decl I2 I2Ty i2\
+    mR-db Ind f =>
+    coq.build-match i1 I2Ty (rty-1 Bo i2) (mkBranch TyParamNo Bo i2 I2Ty) (R f i1 i2).
 implement-mR 0 TyParamNo (prod I1 I1Ty i1\ prod I2 I2Ty i2\ (Bo i1 i2)) (fun I1 I1Ty i1\ fun I2 I2Ty i2\ (R i1 i2)) :-
+  coq.say "not recursive ",
   @pi-decl I1 I1Ty i1\
   @pi-decl I2 I2Ty i2\
     coq.build-match i1 I2Ty (rty-1 Bo i2) (mkBranch TyParamNo Bo i2 I2Ty) (R i1 i2).

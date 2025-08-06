@@ -97,13 +97,11 @@ Elpi derive.isK WrapMore.
 Elpi derive.mR WrapMore.
 Print WrapMore_mR.
 
-
 Elpi derive.param2 nat.
 Elpi derive.mymap nat.
 Elpi derive.isK nat.
 Elpi derive.mR nat.
 
-Elpi Trace Browser.
 Elpi derive.param2 option.
 Elpi derive.mymap option.
 Elpi derive.mR option.
