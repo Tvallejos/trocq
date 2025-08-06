@@ -54,8 +54,10 @@ sub-branch TyParamNo K1 Args1 ArgTys1 K2 Args2 ArgTys2 Bo (fun `e` ETy e\ (R e))
   BoXY = Bo X Y,
   coq.elaborate-skeleton BoXY _ BoXYE _,
   BoXYE = prod _ ETy G,
+  whd K1 [] Constr1 TypeArgs1,
+  whd K2 [] Constr2 TypeArgs2,
   @pi-decl `e` ETy e\
-    matrix TyParamNo K1 Args1 ArgTys1 K2 Args2 ArgTys2 e ETy (G e) (R e).
+    matrix TyParamNo Constr1 TypeArgs1 Args1 ArgTys1 Constr2 TypeArgs2 Args2 ArgTys2 e ETy (G e) (R e).
 
 % Each branch matches on Y as Y0, returning a term of type (Bo (K KArgs) Y0) given by matrix.
 pred mkBranch i:int, i:(term -> term -> term), i:term, i:term, i:term, i:term, i:list term, i:list term, o:term.
@@ -74,6 +76,7 @@ build-mRA-ty-args [ATy1| ArgsTy1] [ATy2| ArgsTy2] MR R :-
   coq.mk-app MR [ATy1, ATy2, AR] NewMR, 
   build-mRA-ty-args ArgsTy1 ArgsTy2 NewMR R.
 
+% TODO update: this considers that type arguments come in Ts, they don't come in there.
 pred build-mRA i:term, i:term, o:term.
 build-mRA ATy1 ATy2 R :-
   whd ATy1 [] ITy ArgsTy1,
@@ -109,23 +112,27 @@ build-injEKJ TyParamNo E ETy K J R :-
 
 % TODO: for processing params extend with an int of param no + db Type Type AR.
 % TODO: for processing contained types, lookup mR-db apply arg1 arg2 + the ith constructor injection of the equality.
-pred apply-indR i:int, i:int, i:term, i:term, i:list term, i:list term, i:list term, i:list term, i:term, i:term, i:term, i:term, i:int, o: term.
+pred apply-indR i:int, i:int, i:term, i:term, i:list term, i:list term, i:list term, i:list term, i:list term, i:list term, i:term, i:term, i:term, i:term, i:int, o: term.
 % N J K KR K1Args K1Tys K2Args K2Tys X Y E TyParamNo
-apply-indR 0 _ _ KR [] [] [] [] _ _ _ _ _ KR.
+apply-indR 0 _ _ KR [] [] [] [] [] [] _ _ _ _ _ KR.
 % for the jth argument provide A1 A2 AR12
 % For AR12 we bring mR_ATy ATyArgs1 ATyArgs2 ARs
 % For the equality we bring injectionKJ TyArgs2 (Args1 of the eq) (Args2 of the eq)
-apply-indR 0 J K KR [A1|Args1] [ATy1|ArgTys1] [A2|Args2] [ATy2| ArgTys2] LHS RHS E ETy TyParamNo R :- 
+apply-indR 0 J K KR [] [A1|Args1] [ATy1|ArgTys1] [] [A2|Args2] [ATy2| ArgTys2] LHS RHS E ETy TyParamNo R :- 
   Jn is J + 1,
   build-mRA ATy1 ATy2 MRA,
   build-injEKJ TyParamNo E ETy K J InjEKJ,
   coq.mk-app MRA [A1,A2,InjEKJ] A12R, 
   coq.mk-app KR [A1,A2, A12R] KA12AR,
-  apply-indR 0 Jn K KA12AR Args1 ArgTys1 Args2 ArgTys2 LHS RHS E ETy TyParamNo R. 
+  apply-indR 0 Jn K KA12AR [] Args1 ArgTys1 [] Args2 ArgTys2 LHS RHS E ETy TyParamNo R. 
+apply-indR N J K KR [Ty1|TyArgs1] Args1 ArgTys1 [Ty2|TyArgs2] Args2 ArgTys2 LHS RHS E ETy TyParamNo R :- 
 % TODO: implement params.
-% apply-indR N J K KR [A1|Args1] [ATy1|ArgTys1] [A2|Args2] [ATy2| ArgTys2] LHS RHS E TyParamNo R :- 
-%   M is TyParamNo - 1,
-%   % Jn is J + 1,
+  M is N - 1,
+  ar-db Ty1 Ty2 AR,
+  coq.mk-app KR [Ty1, Ty2, AR] NewKR,
+  apply-indR M J K NewKR TyArgs1 Args1 ArgTys1 TyArgs2 Args2 ArgTys2 LHS RHS E ETy TyParamNo R.
+
+
 %   % mR-db ATy1 mRA,
 %   % injections-db ATy1
 %   % coq.mk-app mRA [A1,]
@@ -136,18 +143,17 @@ apply-indR 0 J K KR [A1|Args1] [ATy1|ArgTys1] [A2|Args2] [ATy2| ArgTys2] LHS RHS
 % On the diagonal return KR a1 a2 ... 
 % Outside the diagonal discriminate
 pred matrix 
-    i:int, i: term, i:list term, i:list term, i:term, i:list term, i:list term, 
+    i:int, i: term, i:list term, i:list term, i:list term, i:term, i:list term, i:list term, i:list term, 
     i:term, i:term, i:term, o:term.
-matrix TyParamNo K1 KArgs1 ArgTys1 K1 KArgs2 ArgTys2 E ETy _ R :-
+matrix TyParamNo K1 TyArgs1 KArgs1 ArgTys1 K1 TyArgs2 KArgs2 ArgTys2 E ETy _ R :-
   !,
   coq.say "Same constructor K1" K1,
   param K1 K1 KR,
-  coq.mk-app K1 KArgs1 LHS,
-  coq.mk-app K1 KArgs2 RHS,
-  %TODO: pass equality and EqTy to apply-indR
-  apply-indR TyParamNo 1 K1 KR KArgs1 ArgTys1 KArgs2 ArgTys2 LHS RHS E ETy TyParamNo R.
+  coq.mk-app K1 {std.append TyArgs1 KArgs1} LHS,
+  coq.mk-app K1 {std.append TyArgs2 KArgs2} RHS,
+  apply-indR TyParamNo 1 K1 KR TyArgs1 KArgs1 ArgTys1 TyArgs2 KArgs2 ArgTys2 LHS RHS E ETy TyParamNo R.
 
-matrix _ _ _ _ _ _ _ E ETy G R :- !,
+matrix _ _ _ _ _ _ _ _ _ E ETy G R :- !,
   ltac.discriminate E ETy G R.
 
 pred implement-mR i:int, i:int, i:term, o:term.
@@ -169,7 +175,26 @@ implement-mR 0 TyParamNo (prod I1 I1Ty i1\ prod I2 I2Ty i2\ (Bo i1 i2)) (fun I1 
   coq.say "not recursive ",
   @pi-decl I1 I1Ty i1\
   @pi-decl I2 I2Ty i2\
-    coq.build-match i1 I2Ty (rty-1 Bo i2) (mkBranch TyParamNo Bo i2 I2Ty) (R i1 i2).
+    coq.build-match i1 I1Ty (rty-1 Bo i2) (mkBranch TyParamNo Bo i2 I2Ty) (R i1 i2).
+implement-mR N TyParamNo (prod A1 A1Ty a1\ prod A2 A2Ty a2\ prod AR (ARTy a1 a2) ar\ (Bo a1 a2 ar)) (fun  A1 A1Ty a1\  fun A2 A2Ty a2\  fun AR (ARTy a1 a2) ar\ (R a1 a2 ar)) :-
+  M is N - 1,
+  coq.say "Type case",
+  @pi-decl A1 A1Ty a1\
+  @pi-decl A2 A2Ty a2\
+  @pi-decl AR (ARTy a1 a2) ar\
+    Map = {{ @Trocq.Hierarchy.map }},
+    coq.mk-app Map [a1,a2,ar] (PMapA a1 a2 ar),
+    % insert coercions
+    coq.elaborate-skeleton (PMapA a1 a2 ar) _ (MapA a1 a2 ar) ok,
+    MR = {{ @Trocq.Hierarchy.map_in_R }},
+    coq.mk-app MR [a1,a2,ar] (PMR a1 a2 ar),
+    % PMR should not need elaboration coq.elaborate-skeleton PMR _ MRA ok,
+    MRA = PMR,
+    mymap-def A1Ty (MapA a1 a2 ar) ==>
+    mR-db a1 (MRA a1 a2 ar) ==>
+    ar-db a1 a2 ar ==>
+    implement-mR M TyParamNo (Bo a1 a2 ar) (R a1 a2 ar).
+
 
 pred main i:inductive, i:string, o:list prop.
 main GR Prefix Clauses :- std.do! [
@@ -178,15 +203,15 @@ main GR Prefix Clauses :- std.do! [
   Ind = (global (indt GR)),
   param Ind Ind TR,
   coq.typecheck TR TRTy _,
-  mymap-def GR IndMap,
+  mymap-def Ind IndMap,
   mk-mR-type UnifParamNo TRTy IndMap {{ Type }} TR MRTy,
   coq.elaborate-skeleton MRTy _ MRTyE ok,
-  implement-mR UnifParamNo UnifParamNo MRTyE T,
   coq.say "implemented type MRTyE " MRTyE,
+  std.spy! (implement-mR UnifParamNo UnifParamNo MRTyE T),
   coq.say "implemented mR as T = " T,
   coq.elaborate-skeleton T MRTyE TE ok,
   coq.ensure-fresh-global-id Name FName,
-  coq.env.add-const Name TE MRTyE _ C,
+  coq.env.add-const FName TE MRTyE _ C,
   I = global (indt GR),
   Clauses = [mR-done I, mR-db I (global (const C))],
   std.forall Clauses (x\
