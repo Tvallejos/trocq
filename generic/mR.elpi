@@ -50,6 +50,7 @@ pred sub-branch i:int, i: term, i:list term, i:list term, i:term, i:list term, i
 sub-branch TyParamNo K1 Args1 ArgTys1 K2 Args2 ArgTys2 Bo (fun `e` ETy e\ (R e)):-
   coq.mk-app K1 Args1 X,
   coq.mk-app K2 Args2 Y,
+  coq.say "sub branch K2" Y,
   BoXY = Bo X Y,
   coq.elaborate-skeleton BoXY _ BoXYE _,
   BoXYE = prod _ ETy G,
@@ -60,6 +61,7 @@ sub-branch TyParamNo K1 Args1 ArgTys1 K2 Args2 ArgTys2 Bo (fun `e` ETy e\ (R e))
 pred mkBranch i:int, i:(term -> term -> term), i:term, i:term, i:term, i:term, i:list term, i:list term, o:term.
 mkBranch TyParamNo Bo Y YTy K _ Ts TYs R :-
   coq.mk-app K Ts X,
+  coq.say "branch K1" X,
   coq.build-match Y YTy (rty-2 Bo X) 
     (k2\ _\ ts\ tys\ 
       sub-branch TyParamNo K Ts TYs k2 ts tys Bo)
@@ -96,10 +98,10 @@ app-interleave F [A|Args1] [B|Args2] R :-
   coq.mk-app F [A, B] NewF,
   app-interleave NewF Args1 Args2 R.
 
-pred build-injEKJ i:int, i:term,i:term, i:int o: term.
-build-injEKJ TyParamNo E K J R :-
+pred build-injEKJ i:int, i:term, i:term, i:term, i:int o: term.
+build-injEKJ TyParamNo E ETy K J R :-
   injections-db K J InjKJ,
-  whd E [] {{lib:@elpi.eq}} [_,A,B],
+  whd ETy [] {{lib:@elpi.eq}} [_,A,B],
   whd A [] (global (indc _)) ArgsL,
   whd B [] (global (indc _)) ArgsR,
   build-injEKJ-args TyParamNo ArgsL ArgsR InjKJ E InjEKJ,
@@ -107,19 +109,19 @@ build-injEKJ TyParamNo E K J R :-
 
 % TODO: for processing params extend with an int of param no + db Type Type AR.
 % TODO: for processing contained types, lookup mR-db apply arg1 arg2 + the ith constructor injection of the equality.
-pred apply-indR i:int, i:int, i:term, i:term, i:list term, i:list term, i:list term, i:list term, i:term, i:term, i:term, i:int, o: term.
+pred apply-indR i:int, i:int, i:term, i:term, i:list term, i:list term, i:list term, i:list term, i:term, i:term, i:term, i:term, i:int, o: term.
 % N J K KR K1Args K1Tys K2Args K2Tys X Y E TyParamNo
-apply-indR 0 _ _ KR [] [] [] [] _ _ _ _ KR.
+apply-indR 0 _ _ KR [] [] [] [] _ _ _ _ _ KR.
 % for the jth argument provide A1 A2 AR12
 % For AR12 we bring mR_ATy ATyArgs1 ATyArgs2 ARs
 % For the equality we bring injectionKJ TyArgs2 (Args1 of the eq) (Args2 of the eq)
-apply-indR 0 J K KR [A1|Args1] [ATy1|ArgTys1] [A2|Args2] [ATy2| ArgTys2] LHS RHS E TyParamNo R :- 
+apply-indR 0 J K KR [A1|Args1] [ATy1|ArgTys1] [A2|Args2] [ATy2| ArgTys2] LHS RHS E ETy TyParamNo R :- 
   Jn is J + 1,
   build-mRA ATy1 ATy2 MRA,
-  build-injEKJ TyParamNo E K J InjEKJ,
+  build-injEKJ TyParamNo E ETy K J InjEKJ,
   coq.mk-app MRA [A1,A2,InjEKJ] A12R, 
   coq.mk-app KR [A1,A2, A12R] KA12AR,
-  apply-indR 0 Jn K KA12AR Args1 ArgTys1 Args2 ArgTys2 LHS RHS E TyParamNo R. 
+  apply-indR 0 Jn K KA12AR Args1 ArgTys1 Args2 ArgTys2 LHS RHS E ETy TyParamNo R. 
 % TODO: implement params.
 % apply-indR N J K KR [A1|Args1] [ATy1|ArgTys1] [A2|Args2] [ATy2| ArgTys2] LHS RHS E TyParamNo R :- 
 %   M is TyParamNo - 1,
@@ -136,14 +138,14 @@ apply-indR 0 J K KR [A1|Args1] [ATy1|ArgTys1] [A2|Args2] [ATy2| ArgTys2] LHS RHS
 pred matrix 
     i:int, i: term, i:list term, i:list term, i:term, i:list term, i:list term, 
     i:term, i:term, i:term, o:term.
-matrix TyParamNo K1 KArgs1 ArgTys1 K1 KArgs2 ArgTys2 E _ _ R :-
+matrix TyParamNo K1 KArgs1 ArgTys1 K1 KArgs2 ArgTys2 E ETy _ R :-
   !,
   coq.say "Same constructor K1" K1,
   param K1 K1 KR,
   coq.mk-app K1 KArgs1 LHS,
   coq.mk-app K1 KArgs2 RHS,
   %TODO: pass equality and EqTy to apply-indR
-  apply-indR TyParamNo 1 K1 KR KArgs1 ArgTys1 KArgs2 ArgTys2 LHS RHS E TyParamNo R.
+  apply-indR TyParamNo 1 K1 KR KArgs1 ArgTys1 KArgs2 ArgTys2 LHS RHS E ETy TyParamNo R.
 
 matrix _ _ _ _ _ _ _ E ETy G R :- !,
   ltac.discriminate E ETy G R.
