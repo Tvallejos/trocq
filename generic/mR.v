@@ -49,6 +49,15 @@ intros A B R. Fail exact R. exact (map R). Abort.
 
 
 Elpi Trace Browser.
+
+Inductive False : Type :=.
+Elpi derive.param2 False.
+Elpi derive.mymap False.
+Elpi derive.projK False.
+Elpi derive.injections False.
+Elpi derive.isK False.
+Elpi derive.mR False.
+
 Elpi derive "unit".
 Print unit_R.
 Elpi derive.mymap unit.
@@ -71,7 +80,23 @@ Elpi derive.param2 Wrap.
 Elpi derive.mymap Wrap.
 Elpi derive.projK Wrap.
 Elpi derive.injections Wrap.
+Print Wrap_R.
 Elpi derive.mR Wrap.
+Print Wrap_mR.
+
+Inductive WrapMore : Type :=
+| KWrap : unit -> bool -> WrapMore
+| KWrapWrap : Wrap -> WrapMore
+| F : unit -> unit -> unit -> WrapMore.
+
+Elpi derive.param2 WrapMore.
+Elpi derive.mymap WrapMore.
+Elpi derive.projK WrapMore.
+Elpi derive.injections WrapMore.
+Elpi derive.isK WrapMore.
+Elpi derive.mR WrapMore.
+Print WrapMore_mR.
+
 
 Elpi derive.param2 nat.
 Elpi derive.mymap nat.
