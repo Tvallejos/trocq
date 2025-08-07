@@ -1,15 +1,25 @@
+shorten derive.common-algo.{mk-mR-type}.
+
 namespace derive.Rm {
 
-pred main i:gref, i:string, o:list prop.
+pred main i:inductive, i:string, o:list prop.
 main GR Prefix Clauses :- std.do! [
+
+  coq.env.indt GR _ UnifParamNo _ _ _ _,
+  Ind = (global (indt GR)),
+  param Ind Ind TR,
+  coq.typecheck TR TRTy _,
+  mymap-def Ind IndMap,
+  mk-mR-type UnifParamNo TRTy IndMap {{ Type }} TR tt MRTy,
+  coq.elaborate-skeleton MRTy _ MRTyE ok,
 %   ... % synthesize Body and Type
-  Name is Prefix ^ "myconcept",
+  Name is Prefix ^ "Rm",
   coq.ensure-fresh-global-id Name FName,
-  coq.env.add-const FName Body Type _ C,
-%   Clauses = [myder-done GR, myder GR (const C)],
-  Clauses = [],
+  coq.env.add-const FName MRTyE {{ Type }} _ C,
+  I = global (indt GR),
+  Clauses = [rm-done I, rm-db I (global (const C))],
   std.forall Clauses (x\
-    coq.elpi.accumulate _ "derive.myder.db" (clause _ _ x)
+    coq.elpi.accumulate _ "derive.Rm.db" (clause _ _ x)
   ),
 ].
 
