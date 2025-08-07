@@ -1,0 +1,16 @@
+namespace derive.Rm {
+
+pred main i:gref, i:string, o:list prop.
+main GR Prefix Clauses :- std.do! [
+%   ... % synthesize Body and Type
+  Name is Prefix ^ "myconcept",
+  coq.ensure-fresh-global-id Name FName,
+  coq.env.add-const FName Body Type _ C,
+%   Clauses = [myder-done GR, myder GR (const C)],
+  Clauses = [],
+  std.forall Clauses (x\
+    coq.elpi.accumulate _ "derive.myder.db" (clause _ _ x)
+  ),
+].
+
+}
