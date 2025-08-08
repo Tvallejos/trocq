@@ -2,20 +2,53 @@ shorten derive.common-algo.{mk-mR-type}.
 
 namespace derive.Rm {
 
+pred mkBranch i:constructor, i:term, i:constructor, i:term, i:term, i:term, o:term.
+mkBranch Kn (global (indt GR)) KNR KTyR ITy ITyTy {{ @eq_refl lp:{{global (indt GR)}} lp:{{global (indc Kn)}}}}.
+
+pred mkBranches i:list constructor, i:list term, i:list constructor, i:list term, i:term, i:term, o:list term.
+mkBranches [] [] [] [] _ _ [].
+mkBranches [Kn|KNs] [KTy|KTys] [KNR|KNRs] [KTyR|KTyRs] ITy ITyTy [R|Rs] :-
+  mkBranch Kn KTy KNR KTyR ITy ITyTy R,
+  mkBranches KNs KTys KNRs KTyRs ITy ITyTy Rs.
+
+pred implement-Rm i:int, i:int, i:term, i:list constructor, i:list term, i:list constructor, i:list term, i:term, i:term, o:term.
+% Pred comes with Type parameters applied 
+% RInd comes with Type parameters applied 
+implement-Rm 0 TyParamNo (prod I1N ITy1 i1\ prod I2N ITy2 i2\ prod ARN (ARTy i1 i2) ar\ (Bo i1 i2 ar)) KNs KTys KNRs KTyRs Pred RInd
+            (fun I1N ITy1 i1\ fun I2N ITy2 i2\ fun ARN (ARTy i1 i2) ar\ (R i1 i2 ar)) :-
+  @pi-decl I1N ITy1 i1\
+  @pi-decl I2N ITy2 i2\
+  @pi-decl ARN (ARTy i1 i2) ar\
+    coq.mk-app RInd [Pred] RIndP,
+    mkBranches KNs KTys KNRs KTyRs i2 ITy2 (Brs i2),
+    std.append (Brs i2) [i1,i2,ar] (IndArgs i1 i2 ar),
+    coq.mk-app RIndP (IndArgs i1 i2 ar) (R i1 i2 ar),
+    coq.say "This is my term " R.
+
 pred main i:inductive, i:string, o:list prop.
 main GR Prefix Clauses :- std.do! [
 
-  coq.env.indt GR _ UnifParamNo _ _ _ _,
+  coq.env.indt GR _ TyParamNo _ _ KNs KTys,
+  coq.say "KTys " KTys,
   Ind = (global (indt GR)),
   param Ind Ind TR,
   coq.typecheck TR TRTy _,
   mymap-def Ind IndMap,
-  mk-mR-type UnifParamNo TRTy IndMap {{ Type }} TR tt MRTy,
+  mk-mR-type TyParamNo TRTy IndMap {{ Type }} TR tt MRTy,
   coq.elaborate-skeleton MRTy _ MRTyE ok,
-%   ... % synthesize Body and Type
+  TR = global (indt GRR),
+  coq.gref->id (indt GRR) Rname,
+  RInductionName is Rname ^ "_ind",
+  coq.locate RInductionName RInd,
+  coq.prod-R-fun MRTyE Pred,
+  coq.env.indt GRR _ _ _ _ KNRs KTyRs,
+  implement-Rm TyParamNo TyParamNo MRTyE KNs KTys KNRs KTyRs Pred (global RInd) R,
+  coq.say "implemented Rm as " R,
+  coq.elaborate-skeleton R _ Re E,
+  coq.say "Errored " E,
   Name is Prefix ^ "Rm",
   coq.ensure-fresh-global-id Name FName,
-  coq.env.add-const FName MRTyE {{ Type }} _ C,
+  coq.env.add-const FName Re MRTyE _ C,
   I = global (indt GR),
   Clauses = [rm-done I, rm-db I (global (const C))],
   std.forall Clauses (x\
