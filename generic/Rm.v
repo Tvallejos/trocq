@@ -6,6 +6,26 @@ From elpi Require Import elpi.
 From elpi.apps Require Import derive.param2.
 From Trocq Require Import mymap Hierarchy.
 Unset Uniform Inductive Parameters. 
+From elpi.apps Require Import derive.induction.
+
+Inductive False :=.
+Elpi derive.param2 False.
+
+From elpi.apps Require Import derive.param1 derive.param1_functor param1_trivial.
+From Coq Require Import ssreflect ssrfun ssrbool.
+
+Elpi derive.param1 False.
+Elpi derive.param1 False_R.
+
+Elpi derive.induction False_R.
+Elpi derive.param1.trivial is_False.
+(* Elpi derive.param1.trivial is_False_R. *)
+
+(* Elpi derive.param1 unit.
+Elpi derive.param2 unit.
+Elpi derive.param1 unit_R.
+Elpi derive.induction unit_R.
+Print unit_R_induction. *)
 
 Elpi Db derive.Rm.db lp:{{
   % [ar-db A1 A2 AR] returns the relation between a type A1 and A2.
@@ -37,14 +57,16 @@ Elpi Accumulate lp:{{
   usage :- coq.error "Usage: derive.Rm <object name>".
 }}. 
 
-Inductive False : Prop :=.
+(* Inductive False : Prop :=.
 Elpi derive.param2 False.
 Elpi derive.mymap False.
 Elpi derive.Rm False.
-Print False_Rm.
+Print False_Rm. *)
 
 Elpi derive.param2 unit.
 Elpi derive.mymap unit.
+
+Elpi Trace Browser.
 Elpi derive.Rm unit.
 Print unit_Rm.
 
