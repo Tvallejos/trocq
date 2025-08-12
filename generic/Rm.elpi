@@ -2,14 +2,96 @@ shorten derive.common-algo.{mk-mR-type}.
 
 namespace derive.Rm {
 
-pred mkBranch i:constructor, i:term, i:constructor, i:term, i:term, i:term, o:term.
-mkBranch Kn (global (indt GR)) KNR KTyR ITy ITyTy {{ @eq_refl lp:{{global (indt GR)}} lp:{{global (indc Kn)}}}}.
+pred mk-ith-eta i:int, i:list term, i:list term, i:list term, i:term, o:term.
+mk-ith-eta I MArgs DestArgs Tys K FR :- 
+  J is I - 1,
+  std.take J DestArgs Done, % list of args already processed.
+  std.drop I MArgs MTODO, % list of args to yet process
+  std.nth J Tys CurrTy,
+  (pi curr\ 
+    coq.mk-app K {std.append Done [curr|MTODO]} (KArgs curr)),
+  FR = fun `R` CurrTy (r\ (KArgs r)).
 
-pred mkBranches i:list constructor, i:list term, i:list constructor, i:list term, i:term, i:term, o:list term.
-mkBranches [] [] [] [] _ _ [].
-mkBranches [Kn|KNs] [KTy|KTys] [KNR|KNRs] [KTyR|KTyRs] ITy ITyTy [R|Rs] :-
-  mkBranch Kn KTy KNR KTyR ITy ITyTy R,
-  mkBranches KNs KTys KNRs KTyRs ITy ITyTy Rs.
+pred mk-etas i:list term, i:list term, i:list term, i:int, i:int, i: term, o:list term.
+mk-etas _ _ _ M N  _ [] :- M > N.
+mk-etas SrcArgs DestArgs Tys I N KDest [R| RS] :- 
+  J is I + 1,
+  mk-ith-eta I SrcArgs DestArgs Tys KDest R,
+  coq.say I "th eta is " R,
+  mk-etas SrcArgs DestArgs Tys J N KDest RS.
+
+pred compose-path i:list term, i:term, i:term o: term.
+compose-path [] End _ End.
+compose-path [Argk|Args] End ITy {{ @eq_trans lp:ITy _ _ _ lp:Argk lp:R }} :-
+  compose-path Args End ITy R.
+
+% given list of etas, list of src type, list of dest type, 
+% Dest iTyTy, list mapped args, list dest args, returns list of ap tyDest ITyty eta Marg DestArg (e : Marg = DestArg)
+pred mk-aps-etas i:list term, i:list term, i:list term, i:term, i:list term, i:list term, o:list term.
+mk-aps-etas [] [] [] _ [] [] [].
+mk-aps-etas [Eta|Etas] [STy| SrcTys] [DTy|DestTys] ITyTy [MA|MArgs] [DA|Dargs] [R|RS] :-
+  Ap = {{ eq_f }},
+  coq.say "looking for param between for " DA,
+  param DA A AR,
+  rm-db STy RM,
+  % mk the equality
+  coq.mk-app RM [A, DA, AR] EqADA,
+  coq.mk-app Ap [DTy,ITyTy,Eta,MA,DA,EqADA] R,
+  mk-aps-etas Etas SrcTys DestTys ITyTy MArgs Dargs RS.
+
+% Ksource, Kdest, remaining args, KRTy, Type of args Ksource, Type of args KDest, Goal,
+pred process-args i:term, i:term, i:int, i:term, i:term, i:list term, i:list term, o:term.
+process-args Ksrc Kdest 0 _ Goal TySrc TyDest R:- 
+  coq.mk-app Goal [Ksrc, Kdest, {{ Type }}] EqTy, %discards the relation between Ksrc and Kdest, we want the equality.
+  whd EqTy [] {{lib:@elpi.eq}} [T,MapA,B],
+  whd MapA [] (global (indc _)) SrcMappedArgs,
+  whd B [] KDest DestArgs,
+  mk-etas SrcMappedArgs DestArgs TyDest 1 {std.length DestArgs} KDest REtas,
+  mk-aps-etas REtas TySrc TyDest T SrcMappedArgs DestArgs Raps,
+  compose-path Raps {{ @eq_refl lp:T lp:B }} T Rpath, 
+  coq.elaborate-skeleton Rpath EqTy R ok.
+process-args Ksrc Kdest N (prod A1N A1Ty a1\ prod A2N A2Ty a2\ prod ARN (ARTy a1 a2) ar\ (Bo a1 a2 ar)) Goal TySrc TyDest (fun A1N A1Ty a1\ fun A2N A2Ty a2\ fun ARN (ARTy a1 a2) ar\ (R a1 a2 ar)):- 
+  coq.say "Processing arg a1 :" A1Ty,
+  coq.say "And arg a2 :" A2Ty,
+  M is N - 1,
+  @pi-decl A1N A1Ty a1\
+  @pi-decl A2N A2Ty a2\
+  @pi-decl ARN (ARTy a1 a2) ar\
+    coq.mk-app Ksrc [a1] (NewKS a1),
+    coq.mk-app Kdest [a2] (NewKD a2),
+    coq.say "param-db " a1 ":" A1Ty "," a2 ":" A2Ty "," ar ":" (ARTy a1 a2),
+    param a2 a1 ar =>
+    process-args (NewKS a1) (NewKD a2) M (Bo a1 a2 ar) Goal TySrc TyDest (R a1 a2 ar).
+
+pred type-of-args i:term, i:int, o:list term, o:list term. 
+type-of-args _ 0 [] [].
+type-of-args (prod _A1N ATy1 a1\ prod _A2N ATy2 a2\ prod _ _ ar\ (Bo a1 a2 ar)) N [ATy1| SR] [ATy2 | DR] :-
+  M is N - 1,
+  pi a1 a2 ar\ 
+   type-of-args (Bo a1 a2 ar) M SR DR.
+  
+% Constructor, Constructor Type, Arguments to process, ConstructorR constructorR Type, i2, type of i2, i1 i2 iR => goal. 
+pred mkBranch i:term, i:term, i:int, i:term, i:term, i:term, i:term, i:term, o:term.
+mkBranch Kn (global (indt GR)) _ _ _ _ _ _ {{ @eq_refl lp:{{global (indt GR)}} lp:{{Kn}}}}.
+mkBranch Kn KTy N KNR KTyR _ITy _ITyTy Goal Eq:-
+  coq.say "blocked on constructor " Kn,
+  coq.say "of type " KTy,
+  coq.say "missing " N "arguments to process",
+  coq.say "KR " KNR,
+  coq.say "of type " KTyR,
+  type-of-args KTyR N SrcArgs DestArgs,
+  coq.say "Type of source args: " SrcArgs,
+  coq.say "Type of dest args: " DestArgs,
+  process-args Kn Kn N KTyR Goal SrcArgs DestArgs Eq.
+  % are they reversed?
+  % std.rev RRev [Eq | Rest ],
+  % concat-apps Rest Eq R.
+
+pred mkBranches i:list constructor, i:list term, i:list constructor, i:list term, i:term, i:term, i:term o:list term.
+mkBranches [] [] [] [] _ _ _ [].
+mkBranches [Kn|KNs] [KTy|KTys] [KNR|KNRs] [KTyR|KTyRs] ITy ITyTy Goal [R|Rs] :-
+  mkBranch (global (indc Kn)) KTy {coq.count-prods KTy} (global (indc KNR)) KTyR ITy ITyTy Goal R,
+  mkBranches KNs KTys KNRs KTyRs ITy ITyTy Goal Rs.
 
 pred implement-Rm i:int, i:int, i:term, i:list constructor, i:list term, i:list constructor, i:list term, i:term, i:term, o:term.
 % Pred comes with Type parameters applied 
@@ -20,7 +102,9 @@ implement-Rm 0 TyParamNo (prod I1N ITy1 i1\ prod I2N ITy2 i2\ prod ARN (ARTy i1 
   @pi-decl I2N ITy2 i2\
   @pi-decl ARN (ARTy i1 i2) ar\
     coq.mk-app RInd [Pred] RIndP,
-    mkBranches KNs KTys KNRs KTyRs i2 ITy2 (Brs i2),
+    coq.mk-app Pred [i1,i2,ar] (Goal i1 i2 ar),
+    coq.say "This is my goal " (Goal i1 i2 ar),
+    mkBranches KNs KTys KNRs KTyRs i2 ITy2 Pred (Brs i2),
     std.append (Brs i2) [i1,i2,ar] (IndArgs i1 i2 ar),
     coq.mk-app RIndP (IndArgs i1 i2 ar) (R i1 i2 ar),
     coq.say "This is my term " R.
@@ -41,6 +125,7 @@ main GR Prefix Clauses :- std.do! [
   RInductionName is Rname ^ "_ind",
   coq.locate RInductionName RInd,
   coq.prod-R-fun MRTyE Pred,
+  coq.say "This is Pred" Pred,
   coq.env.indt GRR _ _ _ _ KNRs KTyRs,
   implement-Rm TyParamNo TyParamNo MRTyE KNs KTys KNRs KTyRs Pred (global RInd) R,
   coq.say "implemented Rm as " R,
