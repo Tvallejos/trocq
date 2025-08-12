@@ -4,6 +4,7 @@ From Trocq Extra Dependency "common_algo.elpi" as common.
 
 From elpi Require Import elpi.
 From elpi.apps Require Import derive.param2.
+From elpi.apps Require Import derive.bcongr. (* for eq_f register *) 
 From Trocq Require Import mymap Hierarchy.
 Unset Uniform Inductive Parameters. 
 From elpi.apps Require Import derive.induction.
@@ -38,6 +39,9 @@ Elpi Db derive.Rm.db lp:{{
   pred rm-done o:term.
 }}.
 
+(* Definition eq_trans_impl {A : Type} {x y z : A} : x = y -> y = z -> x = z.
+by apply eq_trans. Defined. *)
+
 Elpi Command derive.Rm.
 Elpi Accumulate File derive_hook.
 Elpi Accumulate Db Header derive.param2.db.
@@ -66,7 +70,6 @@ Print False_Rm. *)
 Elpi derive.param2 unit.
 Elpi derive.mymap unit.
 
-Elpi Trace Browser.
 Elpi derive.Rm unit.
 Print unit_Rm.
 
