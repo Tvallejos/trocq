@@ -101,6 +101,14 @@ Elpi derive.mymap nat.
 Elpi derive.Rm nat.
 Print nat_Rm.
 
+Inductive DoubleRec : Type :=
+| Base
+| Double : DoubleRec -> DoubleRec -> DoubleRec.
+Elpi derive.param2 DoubleRec.
+Elpi derive.mymap DoubleRec.
+Elpi derive.Rm DoubleRec.
+Print DoubleRec_Rm.
+
 Inductive Box (A : Type) :=
 | B : A -> Box A.
 
