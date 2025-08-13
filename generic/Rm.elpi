@@ -40,17 +40,18 @@ mk-aps-etas [Eta|Etas] [STy| SrcTys] [DTy|DestTys] ITyTy [MA|MArgs] [DA|Dargs] [
   mk-aps-etas Etas SrcTys DestTys ITyTy MArgs Dargs RS.
 
 % Ksource, Kdest, remaining args, KRTy, Type of args Ksource, Type of args KDest, Goal,
-pred process-args i:term, i:term, i:int, i:term, i:term, i:list term, i:list term, o:term.
-process-args Ksrc Kdest 0 _ Goal TySrc TyDest R:- 
+pred process-args i:term, i:term, i:int, i:term, i:term, i:list term, i:list term, i:term, o:term.
+process-args Ksrc Kdest 0 _ Goal TySrc TyDest _ITyTy R:- 
   coq.mk-app Goal [Ksrc, Kdest, {{ Type }}] EqTy, %discards the relation between Ksrc and Kdest, we want the equality.
   whd EqTy [] {{lib:@elpi.eq}} [T,MapA,B],
   whd MapA [] (global (indc _)) SrcMappedArgs,
+  coq.say "This is the Src Mapped Args" SrcMappedArgs,
   whd B [] KDest DestArgs,
   mk-etas SrcMappedArgs DestArgs TyDest 1 {std.length DestArgs} KDest REtas,
   mk-aps-etas REtas TySrc TyDest T SrcMappedArgs DestArgs Raps,
   compose-path Raps {{ @eq_refl lp:T lp:B }} T Rpath, 
   coq.elaborate-skeleton Rpath EqTy R ok.
-process-args Ksrc Kdest N (prod A1N A1Ty a1\ prod A2N A2Ty a2\ prod ARN (ARTy a1 a2) ar\ (Bo a1 a2 ar)) Goal TySrc TyDest (fun A1N A1Ty a1\ fun A2N A2Ty a2\ fun ARN (ARTy a1 a2) ar\ (R a1 a2 ar)):- 
+process-args Ksrc Kdest N (prod A1N A1Ty a1\ prod A2N A2Ty a2\ prod ARN (ARTy a1 a2) ar\ (Bo a1 a2 ar)) Goal TySrc TyDest ITyTy (fun A1N A1Ty a1\ fun A2N A2Ty a2\ fun ARN (ARTy a1 a2) ar\ (RF a1 a2 ar)):- 
   coq.say "Processing arg a1 :" A1Ty,
   coq.say "And arg a2 :" A2Ty,
   M is N - 1,
@@ -60,8 +61,15 @@ process-args Ksrc Kdest N (prod A1N A1Ty a1\ prod A2N A2Ty a2\ prod ARN (ARTy a1
     coq.mk-app Ksrc [a1] (NewKS a1),
     coq.mk-app Kdest [a2] (NewKD a2),
     coq.say "param-db " a1 ":" A1Ty "," a2 ":" A2Ty "," ar ":" (ARTy a1 a2),
-    param a2 a1 ar =>
-    process-args (NewKS a1) (NewKD a2) M (Bo a1 a2 ar) Goal TySrc TyDest (R a1 a2 ar).
+    (param a2 a1 ar =>
+    process-args (NewKS a1) (NewKD a2) M (Bo a1 a2 ar) Goal TySrc TyDest ITyTy (R a1 a2 ar)),
+    whd ITyTy _ Ind _,
+    whd A2Ty _ IndD _,
+    if (Ind = IndD)
+       (coq.mk-app Goal [a1, a2, ar] (EqTy a1 a2 ar),
+        (RF a1 a2 ar) = fun `e` (EqTy a1 a2 ar) e\ (R a1 a2 ar))
+        (RF = R).
+
 
 pred type-of-args i:term, i:int, o:list term, o:list term. 
 type-of-args _ 0 [] [].
@@ -73,7 +81,7 @@ type-of-args (prod _A1N ATy1 a1\ prod _A2N ATy2 a2\ prod _ _ ar\ (Bo a1 a2 ar)) 
 % Constructor, Constructor Type, Arguments to process, ConstructorR constructorR Type, i2, type of i2, i1 i2 iR => goal. 
 pred mkBranch i:term, i:term, i:int, i:term, i:term, i:term, i:term, i:term, o:term.
 mkBranch Kn (global (indt GR)) _ _ _ _ _ _ {{ @eq_refl lp:{{global (indt GR)}} lp:{{Kn}}}}.
-mkBranch Kn KTy N KNR KTyR _ITy _ITyTy Goal Eq:-
+mkBranch Kn KTy N KNR KTyR _ITy ITyTy Goal Eq:-
   coq.say "blocked on constructor " Kn,
   coq.say "of type " KTy,
   coq.say "missing " N "arguments to process",
@@ -82,7 +90,7 @@ mkBranch Kn KTy N KNR KTyR _ITy _ITyTy Goal Eq:-
   type-of-args KTyR N SrcArgs DestArgs,
   coq.say "Type of source args: " SrcArgs,
   coq.say "Type of dest args: " DestArgs,
-  process-args Kn Kn N KTyR Goal SrcArgs DestArgs Eq.
+  process-args Kn Kn N KTyR Goal SrcArgs DestArgs ITyTy Eq.
   % are they reversed?
   % std.rev RRev [Eq | Rest ],
   % concat-apps Rest Eq R.
@@ -96,7 +104,26 @@ mkBranches [Kn|KNs] [KTy|KTys] [KNR|KNRs] [KTyR|KTyRs] ITy ITyTy Goal [R|Rs] :-
 pred implement-Rm i:int, i:int, i:term, i:list constructor, i:list term, i:list constructor, i:list term, i:term, i:term, o:term.
 % Pred comes with Type parameters applied 
 % RInd comes with Type parameters applied 
-implement-Rm 0 TyParamNo (prod I1N ITy1 i1\ prod I2N ITy2 i2\ prod ARN (ARTy i1 i2) ar\ (Bo i1 i2 ar)) KNs KTys KNRs KTyRs Pred RInd
+implement-Rm 0 _TyParamNo (prod I1N ITy1 i1\ prod I2N ITy2 i2\ prod ARN (ARTy i1 i2) ar\ (Bo i1 i2 ar)) KNs KTys KNRs KTyRs Pred RInd
+            (fix `f` 2 RT f\ fun I1N ITy1 i1\ fun I2N ITy2 i2\ fun ARN (ARTy i1 i2) ar\ (R f i1 i2 ar)) :-
+  coq.safe-dest-app ITy1 Ind _, 
+  Ind = (global (indt GR)),
+  coq.env.recursive? GR, !,
+  coq.say GR "is recursive",
+  RT = (prod I1N ITy1 i1\ prod I2N ITy2 i2\ prod ARN (ARTy i1 i2) ar\ (Bo i1 i2 ar)),
+  @pi-decl `f` RT f\
+  @pi-decl I1N ITy1 i1\
+  @pi-decl I2N ITy2 i2\
+  @pi-decl ARN (ARTy i1 i2) ar\
+    coq.mk-app RInd [Pred] RIndP,
+    coq.mk-app Pred [i1,i2,ar] (Goal i1 i2 ar),
+    coq.say "This is my goal " (Goal i1 i2 ar),
+    (rm-db Ind f => 
+      mkBranches KNs KTys KNRs KTyRs i2 ITy2 Pred (Brs f i2)),
+    std.append (Brs f i2) [i1,i2,ar] (IndArgs f i1 i2 ar),
+    coq.mk-app RIndP (IndArgs f i1 i2 ar) (R f i1 i2 ar),
+    coq.say "This is my term " R.
+implement-Rm 0 _TyParamNo (prod I1N ITy1 i1\ prod I2N ITy2 i2\ prod ARN (ARTy i1 i2) ar\ (Bo i1 i2 ar)) KNs KTys KNRs KTyRs Pred RInd
             (fun I1N ITy1 i1\ fun I2N ITy2 i2\ fun ARN (ARTy i1 i2) ar\ (R i1 i2 ar)) :-
   @pi-decl I1N ITy1 i1\
   @pi-decl I2N ITy2 i2\
