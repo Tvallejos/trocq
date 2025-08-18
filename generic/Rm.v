@@ -72,7 +72,6 @@ Print False_Rm. *)
 Elpi derive.param2 unit.
 Elpi derive.mymap unit.
 
-Elpi Trace Browser.
 Elpi derive.Rm unit.
 Print unit_Rm.
 
