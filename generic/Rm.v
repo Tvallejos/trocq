@@ -1,3 +1,4 @@
+From Coq Require Import ssreflect.
 From elpi.apps.derive.elpi Extra Dependency "derive_hook.elpi" as derive_hook.
 From Trocq Extra Dependency "Rm.elpi" as Rm.
 From Trocq Extra Dependency "common_algo.elpi" as common.
@@ -5,9 +6,10 @@ From Trocq Extra Dependency "common_algo.elpi" as common.
 From elpi Require Import elpi.
 From elpi.apps Require Import derive.param2.
 From elpi.apps Require Import derive.bcongr. (* for eq_f register *) 
-From Trocq Require Import mymap Hierarchy.
-Unset Uniform Inductive Parameters. 
+From Trocq Require Import mymap.
 From elpi.apps Require Import derive.induction.
+From Trocq Require Import HoTT_additions Hierarchy.
+Unset Uniform Inductive Parameters. 
 
 Inductive False :=.
 Elpi derive.param2 False.
@@ -114,6 +116,11 @@ Inductive Box (A : Type) :=
 
 Elpi derive.param2 Box.
 Elpi derive.mymap Box.
+Elpi Trace Browser.
+Set Printing All.
+About R_in_map.
+Print B_R.
+Print Box_R_ind.
 Elpi derive.Rm Box.
 Print Box_Rm.
 
