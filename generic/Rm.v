@@ -72,6 +72,7 @@ Print False_Rm. *)
 Elpi derive.param2 unit.
 Elpi derive.mymap unit.
 
+Elpi Trace Browser.
 Elpi derive.Rm unit.
 Print unit_Rm.
 
@@ -116,7 +117,6 @@ Inductive Box (A : Type) :=
 
 Elpi derive.param2 Box.
 Elpi derive.mymap Box.
-Elpi Trace Browser.
 Set Printing All.
 About R_in_map.
 Print B_R.
