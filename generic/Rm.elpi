@@ -29,6 +29,28 @@ whds T R :-
   whd T [] HD ARGS,
   unwind HD ARGS R.
 
+pred build-Rm-args i:list term, i:list term, i:term, o:term.
+build-Rm-args [] _ T T.
+build-Rm-args [A1|Args1] [A2|Args2] T R :-
+  ar-db A1 A2 AR,
+  coq.mk-app T [A1, A2, AR] TAR,
+  build-Rm-args Args1 Args2 TAR R.
+
+
+pred build-Rm i:term, i:term, i:term, o:term.
+build-Rm STy DTy ITyTy R :-
+  coq.safe-dest-app STy Ind Args1, 
+  coq.safe-dest-app ITyTy Ind2 Args2, 
+  rm-db Ind RM,
+  if (Ind = Ind2)
+    (R = RM)
+    (build-Rm-args Args1 Args2 RM RSkel, 
+     coq.elaborate-skeleton RSkel _ R ok).
+  %   build-mRA-ty-args ArgsTy1 ArgsTy2 MR R).
+  % rm-db STy RM,
+
+
+
 % given list of etas, list of src type, list of dest type, 
 % Dest iTyTy, list mapped args, list dest args, returns list of ap tyDest ITyty eta Marg DestArg (e : Marg = DestArg)
 pred mk-aps-etas i:list term, i:list term, i:list term, i:term, i:list term, i:list term, o:list term.
@@ -36,17 +58,12 @@ mk-aps-etas [] [] [] _ [] [] [].
 mk-aps-etas [Eta|Etas] [STy| SrcTys] [DTy|DestTys] ITyTy [MA|MArgs] [DA|Dargs] [RE|RS] :-
   Ap = {{ eq_f }},
   param DA A AR,
-  rm-db STy RM,
+  build-Rm STy DTy ITyTy RM,
   coq.typecheck RM RmTy ok,
   coq.typecheck AR ARTy ok,
-  coq.mk-app RM [A, DA] EqADA,
-  coq.elaborate-skeleton EqADA RtoM EqADAR Err,
-  RtoM = prod _ RT _,
-  coq.elaborate-skeleton AR RT ARR ERRAR,
-  coq.mk-app EqADAR [ARR] EqADAE,
-  coq.elaborate-skeleton EqADAE {{ @eq lp:DTy lp:MA lp:DA }} Done ERROR,
-  coq.mk-app Ap [DTy,ITyTy,Eta,MA,DA,EqADAE] R,
-  coq.elaborate-skeleton R RTy RE E,
+  coq.mk-app RM [A, DA, AR] EqADA,
+  coq.mk-app Ap [DTy,ITyTy,Eta,MA,DA,EqADA] R,
+  coq.elaborate-skeleton R _ RE E,
   mk-aps-etas Etas SrcTys DestTys ITyTy MArgs Dargs RS.
 
 % Ksource, Kdest, remaining args, number of type args, KRTy, Type of args Ksource, Type of args KDest, Goal,
@@ -111,7 +128,6 @@ implement-Rm 0 _TyParamNo (prod IN1 ITy1 i1\ prod IN2 ITy2 i2\ prod ARN (ARTy i1
   coq.safe-dest-app ITy1 Ind _, 
   Ind = (global (indt GR)),
   coq.env.recursive? GR, !,
-  coq.say GR "is recursive",
   RT = (prod IN1 ITy1 i1\ prod IN2 ITy2 i2\ prod ARN (ARTy i1 i2) ar\ (Bo i1 i2 ar)),
   coq.mk-app RInd [Pred] RIndP,
   @pi-decl `f` RT f\
