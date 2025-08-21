@@ -1,4 +1,4 @@
-shorten derive.algo-utils.{duplicate-arguments}.
+shorten derive.algo-utils.{duplicate-arguments, count-args}.
 
 namespace derive.injections {
 
@@ -29,8 +29,7 @@ get-projectors GRK J Max [P|PJs] :-
 pred for-K-get-projectors i:int, i:list constructor, i:list term, o: list int, o:list (list term).
 for-K-get-projectors _ [] [] [] []:- !.
 for-K-get-projectors TyParamNo [Kn|KNs] [KTy|KTys] [ArgsNo|ArgsNos] [R|RS]:- 
-    coq.count-prods KTy ArgsParamNo,
-    ArgsNo is ArgsParamNo - TyParamNo,
+    count-args TyParamNo KTy ArgsNo,
     get-projectors Kn 0 ArgsNo R,
     for-K-get-projectors TyParamNo KNs KTys ArgsNos RS.
 
