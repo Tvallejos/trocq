@@ -1,23 +1,7 @@
 shorten derive.common-algo.{mk-mR-type}.
+shorten derive.algo-utils.{mk-aps-etas, mk-etas, mk-ith-eta}.
 
 namespace derive.Rm {
-
-pred mk-ith-eta i:int, i:list term, i:list term, i:list term, i:term, o:term.
-mk-ith-eta I MArgs DestArgs Tys K FR :- 
-  J is I - 1,
-  std.take J DestArgs Done, % list of args already processed.
-  std.drop I MArgs MTODO, % list of args to yet process
-  std.nth J Tys CurrTy,
-  (pi curr\ 
-    coq.mk-app K {std.append Done [curr|MTODO]} (KArgs curr)),
-  FR = fun `R` CurrTy (r\ (KArgs r)).
-
-pred mk-etas i:list term, i:list term, i:list term, i:int, i:int, i: term, o:list term.
-mk-etas _ _ _ M N  _ [] :- M > N.
-mk-etas SrcArgs DestArgs Tys I N KDest [R| RS] :- 
-  J is I + 1,
-  mk-ith-eta I SrcArgs DestArgs Tys KDest R,
-  mk-etas SrcArgs DestArgs Tys J N KDest RS.
 
 pred compose-path i:list term, i:term, i:term o: term.
 compose-path [] End _ End.
@@ -46,16 +30,6 @@ build-Rm STy ITyTy R :-
     (build-Rm-args Args1 Args2 RM RSkel, 
      coq.elaborate-skeleton RSkel _ R ok).
 
-% given list eta-src type, eta-RT, list of etas, list of src, list of dest, list of src = dest, 
-% builds the corresponding ap.
-pred mk-aps-etas i:list term, i:term, i:list term, i:list term, i:list term, i:list term, o:list term.
-mk-aps-etas [] _ [] [] [] [] [].
-mk-aps-etas [DTy|DestTys] ITyTy [Eta|Etas] [SA|SrcArgs] [DA|DestArgs] [Eq|Eqs] [RE | RS] :-
-  Ap = {{ eq_f }},
-  coq.mk-app Ap [DTy,ITyTy,Eta,SA,DA,Eq] R,
-  coq.elaborate-skeleton R _ RE ok,
-  mk-aps-etas DestTys ITyTy Etas SrcArgs DestArgs Eqs RS.
-
 pred mk-equalities i:list term, i:term, i: list term, o:list term.
 mk-equalities [] _ [] [].
 mk-equalities [STy| SrcTys] ITyTy [DA|Dargs] [R|RS] :-
@@ -64,22 +38,20 @@ mk-equalities [STy| SrcTys] ITyTy [DA|Dargs] [R|RS] :-
   coq.mk-app RM [A, DA, AR] R,
   mk-equalities SrcTys ITyTy Dargs RS.
 
-% pred mk-chain
-
 % Ksource, Kdest, remaining args, number of type args, KRTy, Type of args Ksource, Type of args KDest, Goal,
 pred process-args i:term, i:term, i:int, i:int, i:term, i:term, i:list term, i:list term, i:term, o:term.
-process-args Ksrc Kdest 0 TyArgsNo _ Goal TySrc TyDest _ITyTy R:- 
+process-args Ksrc Kdest 0 TyArgsNo _ Goal TySrc TyDest ITyTy R:- 
   coq.mk-app Goal [Ksrc, Kdest, {{ Type }}] EqTy, %discards the relation between Ksrc and Kdest, we want the equality.
-  whd EqTy [] {{lib:@elpi.eq}} [T,MapA,B],
+  whd EqTy [] {{lib:@elpi.eq}} [ITyTy,MapA,B],
   whd MapA [] (global (indc _)) TySrcMappedArgs,
   whd B [] KDest TyDestArgs,
-  std.drop TyArgsNo TySrcMappedArgs SrcMappedArgs,
+  std.drop TyArgsNo TySrcMappedArgs SrcArgs,
   std.drop TyArgsNo TyDestArgs DestArgs,
   coq.mk-app KDest {std.take TyArgsNo TyDestArgs} KAppTyArgs,
-  mk-etas SrcMappedArgs DestArgs TyDest 1 {std.length DestArgs} KAppTyArgs REtas,
-  mk-equalities TySrc T DestArgs Eqs,
-  mk-aps-etas TyDest T REtas SrcMappedArgs DestArgs Eqs Raps,
-  compose-path Raps {{ @eq_refl lp:T lp:B }} T Rpath, 
+  mk-etas SrcArgs DestArgs TyDest KAppTyArgs REtas,
+  mk-equalities TySrc ITyTy DestArgs Eqs,
+  mk-aps-etas TyDest ITyTy REtas SrcArgs DestArgs Eqs Raps,
+  compose-path Raps {{ @eq_refl lp:ITyTy lp:B }} ITyTy Rpath, 
   coq.elaborate-skeleton Rpath EqTy R ok.
 process-args Ksrc Kdest N TyArgsNo (prod AN1 A1Ty a1\ prod AN2 A2Ty a2\ prod ARN (ARTy a1 a2) ar\ (Bo a1 a2 ar)) Goal TySrc TyDest ITyTy 
                                    (fun AN1 A1Ty a1\ fun AN2 A2Ty a2\ fun ARN (ARTy a1 a2) ar\ (RF a1 a2 ar)):- 
