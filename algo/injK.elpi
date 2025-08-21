@@ -1,17 +1,36 @@
+shorten derive.algo-utils.{duplicate-arguments,count-args}.
+
 namespace derive.injK {
 
-pred mk-injK-types i:int, i: list constructor, i:list term, o:list term.
+% pred mk-injK-type i:int, i: int, i:term, i:term, o:term.
+% mk-injK-type TyParamNo ArgNo K
+
+% typaramno, constructors, type of constructors, for every constructor
+pred mk-injK-typesK i:int, i: list constructor, i:list term, i:list term, o:list (list term).
+
+%TyParamNo, constructors, type of constructors, output.
+% for every constructor, 
+% collects its injectors and build the corresponding type for every injector
+pred mk-injK-types i:int, i: list constructor, i:list term, o:list (list term).
 mk-injK-types TyParamNo KNs KTys [].
 
-pred implement-injK-types i:int, i: list constructor, i:list term, i:list term, o:list term.
+
+pred implement-injK-types i:int, i: list constructor, i:list term, i:list (list term), o:list term.
 implement-injK-types TyParamNo KNs KTys RTys [].
+
 
 pred main i:inductive, i:string, o:list prop.
 main GR Prefix Clauses :- std.do! [
   
   coq.env.indt GR _ TyParamNo _ _ KNs KTys,
   Ind = (global (indt GR)),
-  param Ind Ind TR,
+  % param Ind Ind TR,
+  std.map KTys (x\ r\ sigma ArgNo R\ 
+    count-args TyParamNo x ArgNo,
+    duplicate-arguments TyParamNo ArgNo x R,
+    r = R) DTy,
+  coq.say "constructor types " KTys,
+  coq.say " duplicated types " DTy,
   mk-injK-types TyParamNo KNs KTys RTys, 
   implement-injK-types TyParamNo KNs KTys RTys RS,
   % coq.elaborate-skeleton MRTy _ MRTyE ok,
