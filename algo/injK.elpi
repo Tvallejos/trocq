@@ -1,4 +1,4 @@
-shorten derive.algo-utils.{duplicate-arguments,count-args}.
+shorten derive.algo-utils.{duplicate-arguments,count-args, name-prefix}.
 
 namespace derive.injK {
 
@@ -8,11 +8,60 @@ namespace derive.injK {
 % typaramno, constructors, type of constructors, for every constructor
 pred mk-injK-typesK i:int, i: list constructor, i:list term, i:list term, o:list (list term).
 
+% TyParam, ArgNo, injKTy so far, Function, RHS path.
+pred add-concl i:int, i:int, i:term, i:term, i:term, o: term.
+
+pred add-equalities i:int, i:int, i:term, o:term.
+add-equalities 0 0 T T.
+add-equalities 0 M (prod AN1 ATy a1\ prod AN2 ATy a2\ (Bo a1 a2)) 
+                  (prod AN1 ATy a1\ prod AN2 ATy a2\ prod EN (EqTy a1 a2) e\ (R a1 a2)) :-
+  O is M - 1,
+  name-prefix AN1 "p_" EN,
+  pi a1 a2\
+    coq.mk-app {{lib:@elpi.eq}} [ATy, a1, a2] (EqTy a1 a2),
+    add-equalities 0 O (Bo a1 a2) (R a1 a2).
+add-equalities N M (prod AN1 ATy a1\ (Bo a1)) 
+                  (prod AN1 ATy a1\ (R a1)) :-
+  O is N - 1,
+  pi a1\
+    add-equalities O M (Bo a1) (R a1).
+
+pred get-injectors i:list term, i: list int, o: list (list term), o:list (list int).
+get-injectors [] [] [].
+get-injectors [K|Ks] [ArgNo|ArgNos] [R|RS] [Tmp|Tmps]:- 
+  std.iota ArgNo Tmp,
+  std.map Tmp (x\r\ sigma Add1 Ans\ Add1 is x + 1, injections-db K Add1 Ans, r = Ans) R,
+  get-injectors Ks ArgNos RS Tmps.
+
+% TyParam, ArgNo, type of duplicated args + eq, injector, dest path no, RHS path (dflt dummy).
+pred add-concl i:int, i:int, i:term, i:term, i:int, i:term, o:term.
+add-concl 0 0 _ Injtor _ RHS R :-
+  %WIP REFACTORING.
+
+% type of duplicated arguments + eq, list of injectors, list of dest path number.
+pred add-conclss i:term, i:int, i:list int, i:list (list term), i:list (list int), o: list (list term).
+add-conclss _ _ [] [] [] [].
+add-conclss PTy TyParamNo [ArgNo|ArgNos] [Injs|Injss] [DestNos|DestNoss] [InjTys|InjTyss] :-
+  std.map2 Injs DestNos (x\y\r\ sigma R\ add-concl TyParamNo ArgNo PTy x y {{Type}} R, r = R) InjTys,
+  add-conclss PTy TyParamNo ArgNos Injss DestNoss InjTyss.
+
 %TyParamNo, constructors, type of constructors, output.
 % for every constructor, 
 % collects its injectors and build the corresponding type for every injector
 pred mk-injK-types i:int, i: list constructor, i:list term, o:list (list term).
-mk-injK-types TyParamNo KNs KTys [].
+mk-injK-types TyParamNo KNs KTys [] :-
+  std.map KTys (x\ r\ sigma R\ count-args TyParamNo x R, r = R) ArgNos,
+  std.map2 KTys ArgNos 
+    (x\ y\ r\ sigma ArgNo R1 R2\ 
+      duplicate-arguments TyParamNo y x R1,
+      add-equalities TyParamNo y R1 R2,
+      r = R2) PTy,
+  get-injectors {std.map KNs (x\ r\ r = global (indc x))} ArgNos Injss ArgNos,
+  add-conclss PTy Injss ArgNos InjTys,
+
+  coq.say "Injectorss " {std.flatten Injss},
+  coq.say "constructor types " KTys,
+  coq.say " duplicated types " PTy.
 
 
 pred implement-injK-types i:int, i: list constructor, i:list term, i:list (list term), o:list term.
@@ -24,13 +73,6 @@ main GR Prefix Clauses :- std.do! [
   
   coq.env.indt GR _ TyParamNo _ _ KNs KTys,
   Ind = (global (indt GR)),
-  % param Ind Ind TR,
-  std.map KTys (x\ r\ sigma ArgNo R\ 
-    count-args TyParamNo x ArgNo,
-    duplicate-arguments TyParamNo ArgNo x R,
-    r = R) DTy,
-  coq.say "constructor types " KTys,
-  coq.say " duplicated types " DTy,
   mk-injK-types TyParamNo KNs KTys RTys, 
   implement-injK-types TyParamNo KNs KTys RTys RS,
   % coq.elaborate-skeleton MRTy _ MRTyE ok,

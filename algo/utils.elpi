@@ -1,7 +1,14 @@
 namespace derive.algo-utils {
+
 func names12 name -> name, name.
 names12 N N1 N2 :- !,
   coq.name-suffix N 1 N1, coq.name-suffix N 2 N2.
+
+pred name-prefix i: name, i:string, o:name.
+name-prefix N P R :-
+  coq.name->id N NS,
+  S is P ^ NS,
+  coq.string->name S R.
 
 % given TyParam ArgNo and T, 
 % duplicate-argument skips TyParam products, 
