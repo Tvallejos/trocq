@@ -1,0 +1,39 @@
+namespace derive.injK {
+
+pred mk-injK-types i:int, i: list constructor, i:list term, o:list term.
+mk-injK-types TyParamNo KNs KTys [].
+
+pred implement-injK-types i:int, i: list constructor, i:list term, i:list term, o:list term.
+implement-injK-types TyParamNo KNs KTys RTys [].
+
+pred main i:inductive, i:string, o:list prop.
+main GR Prefix Clauses :- std.do! [
+  
+  coq.env.indt GR _ TyParamNo _ _ KNs KTys,
+  Ind = (global (indt GR)),
+  param Ind Ind TR,
+  mk-injK-types TyParamNo KNs KTys RTys, 
+  implement-injK-types TyParamNo KNs KTys RTys RS,
+  % coq.elaborate-skeleton MRTy _ MRTyE ok,
+  % TR = global (indt GRR),
+  % coq.gref->id (indt GRR) Rname,
+  % RInductionName is Rname ^ "_ind",
+  % coq.locate RInductionName RInd,
+  % coq.prod->fun MRTyE Pred,
+  % coq.env.indt GRR _ _ _ _ KNRs KTyRs,
+  % std.map KNs (x\ r\ r = (global (indc x))) Ks,
+  % std.map KNRs (x\ r\ r = (global (indc x))) KRs,
+  % implement-Rm TyParamNo TyParamNo MRTyE Ks Ks KTys KRs KTyRs Pred (global RInd) R,
+  % coq.elaborate-skeleton R MRTyE Re ok,
+  % Name is Prefix ^ "Rm",
+  % coq.ensure-fresh-global-id Name FName,
+  % coq.env.add-const FName Re MRTyE _ C,
+  % I = global (indt GR),
+  % Clauses = [rm-done I, rm-db I (global (const C))],
+  Clauses = [],
+  std.forall Clauses (x\
+    coq.elpi.accumulate _ "derive.Rm.db" (clause _ _ x)
+  ),
+].
+
+}
