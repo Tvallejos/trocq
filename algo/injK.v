@@ -1,12 +1,19 @@
 
 From elpi.apps.derive.elpi Extra Dependency "derive_hook.elpi" as derive_hook.
 From Trocq.Algo Extra Dependency "injK.elpi" as injK.
+From Trocq.Algo Extra Dependency "utils.elpi" as algo_utils.
 
 From elpi Require Import elpi.
 From elpi.apps Require Import derive.bcongr. (* for eq_f register *) 
 
 From Trocq Require Import HoTT_additions Hierarchy.
 Unset Uniform Inductive Parameters. 
+
+Definition conv (A : Type) (x y : A) (p: x = y) 
+    (P : forall x0 : A, x = x0 -> Prop) (P0 : P x eq_refl) :=
+  match p as p0 in _ = t return (P t p0)
+   with eq_refl => P0 end.
+
 
 Elpi Db derive.injectionsK.db lp:{{
 
@@ -23,6 +30,7 @@ Elpi Db derive.injectionsK.db lp:{{
 
 Elpi Command derive.injectionsK.
 Elpi Accumulate File derive_hook.
+Elpi Accumulate File algo_utils.
 Elpi Accumulate Db derive.injectionsK.db.
 Elpi Accumulate File injK.
 Elpi Accumulate lp:{{
@@ -35,3 +43,4 @@ Elpi Accumulate lp:{{
   pred usage.
   usage :- coq.error "Usage: derive.Rm <object name>".
 }}. 
+
