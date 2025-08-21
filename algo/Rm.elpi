@@ -1,12 +1,7 @@
 shorten derive.common-algo.{mk-mR-type}.
-shorten derive.algo-utils.{mk-aps-etas, mk-etas, mk-ith-eta}.
+shorten derive.algo-utils.{mk-chain}.
 
 namespace derive.Rm {
-
-pred compose-path i:list term, i:term, i:term o: term.
-compose-path [] End _ End.
-compose-path [Argk|Args] End ITy {{ @eq_trans lp:ITy _ _ _ lp:Argk lp:R }} :-
-  compose-path Args End ITy R.
 
 pred whds i:term, o:term.
 whds T R :-
@@ -48,11 +43,8 @@ process-args Ksrc Kdest 0 TyArgsNo _ Goal TySrc TyDest ITyTy R:-
   std.drop TyArgsNo TySrcMappedArgs SrcArgs,
   std.drop TyArgsNo TyDestArgs DestArgs,
   coq.mk-app KDest {std.take TyArgsNo TyDestArgs} KAppTyArgs,
-  mk-etas SrcArgs DestArgs TyDest KAppTyArgs REtas,
   mk-equalities TySrc ITyTy DestArgs Eqs,
-  mk-aps-etas TyDest ITyTy REtas SrcArgs DestArgs Eqs Raps,
-  compose-path Raps {{ @eq_refl lp:ITyTy lp:B }} ITyTy Rpath, 
-  coq.elaborate-skeleton Rpath EqTy R ok.
+  mk-chain SrcArgs DestArgs TyDest KAppTyArgs Eqs ITyTy R. 
 process-args Ksrc Kdest N TyArgsNo (prod AN1 A1Ty a1\ prod AN2 A2Ty a2\ prod ARN (ARTy a1 a2) ar\ (Bo a1 a2 ar)) Goal TySrc TyDest ITyTy 
                                    (fun AN1 A1Ty a1\ fun AN2 A2Ty a2\ fun ARN (ARTy a1 a2) ar\ (RF a1 a2 ar)):- 
   M is N - 1,
