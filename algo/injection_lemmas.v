@@ -2,6 +2,7 @@ From elpi.apps.derive.elpi Extra Dependency "injection.elpi" as injection.
 From elpi.apps.derive.elpi Extra Dependency "derive_hook.elpi" as derive_hook.
 From elpi.apps.derive.elpi Extra Dependency "derive_synterp_hook.elpi" as derive_synterp_hook.
 From Trocq.Algo Extra Dependency "injection_lemmas.elpi" as injections.
+From Trocq.Algo Extra Dependency "utils.elpi" as algo_utils.
 
 From elpi Require Import elpi.
 From elpi.apps Require Import derive.bcongr. (* for eq_f register *) 
@@ -26,6 +27,7 @@ Elpi Accumulate Db Header derive.projK.db.
 Elpi Accumulate Db derive.projK.db.
 Elpi Accumulate File injection.
 Elpi Accumulate Db derive.injections.db.
+Elpi Accumulate File algo_utils.
 Elpi Accumulate File injections.
 Elpi Accumulate lp:{{
   
