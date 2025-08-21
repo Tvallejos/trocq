@@ -1,3 +1,5 @@
+shorten derive.algo-utils.{duplicate-arguments}.
+
 namespace derive.injections {
 
 /* for all projectors of type forall Args T, ret 
@@ -32,26 +34,26 @@ for-K-get-projectors TyParamNo [Kn|KNs] [KTy|KTys] [ArgsNo|ArgsNos] [R|RS]:-
     get-projectors Kn 0 ArgsNo R,
     for-K-get-projectors TyParamNo KNs KTys ArgsNos RS.
 
-func names12 name -> name, name.
-names12 N N1 N2 :- !,
-  coq.name-suffix N 1 N1, coq.name-suffix N 2 N2.
+% func names12 name -> name, name.
+% names12 N N1 N2 :- !,
+%   coq.name-suffix N 1 N1, coq.name-suffix N 2 N2.
 
-% given TyParam ArgNo and T, 
-% duplicate-argument skips TyParam lambdas, 
-% then for the first ArgNo lambda adds another lambda expecting an argument of the same Type, 
-% after all lambdas are processed returns the body unchanged
-% Returns a list with the original variables, and a list with the added ones
-pred duplicate-arguments i:int, i:int, i:term, o:term.
-duplicate-arguments 0 0 T T :- !.
-duplicate-arguments 0 O (prod N TyA T) (prod Arg1 TyA a1\ (prod Arg2 TyA a2\ (S a1 a2))) :- 
-    O > 0,
-    P is O - 1,
-    names12 N Arg1 Arg2,
-    (pi a1 a2\ duplicate-arguments 0 P (T a1) (S a1 a2)).
-duplicate-arguments N O (prod TyName TyArg T) (prod TyName TyArg S) :- !,
-  N > 0,
-  M is N - 1,
-  pi a1\ duplicate-arguments M O (T a1) (S a1).
+% % given TyParam ArgNo and T, 
+% % duplicate-argument skips TyParam lambdas, 
+% % then for the first ArgNo lambda adds another lambda expecting an argument of the same Type, 
+% % after all lambdas are processed returns the body unchanged
+% % Returns a list with the original variables, and a list with the added ones
+% pred duplicate-arguments i:int, i:int, i:term, o:term.
+% duplicate-arguments 0 0 T T :- !.
+% duplicate-arguments 0 O (prod N TyA T) (prod Arg1 TyA a1\ (prod Arg2 TyA a2\ (S a1 a2))) :- 
+%     O > 0,
+%     P is O - 1,
+%     names12 N Arg1 Arg2,
+%     (pi a1 a2\ duplicate-arguments 0 P (T a1) (S a1 a2)).
+% duplicate-arguments N O (prod TyName TyArg T) (prod TyName TyArg S) :- !,
+%   N > 0,
+%   M is N - 1,
+%   pi a1\ duplicate-arguments M O (T a1) (S a1).
 
 
 % TyParam, ArgNo, F, Type of the equality, Left HS, Right HS
