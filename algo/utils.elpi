@@ -22,5 +22,5 @@ duplicate-arguments N O (prod TyName TyArg T) (prod TyName TyArg S) :- !,
 pred count-args i:int, i:term, o:int.
 count-args N T R :-
   coq.count-prods T M,
-  R = M - N.
+  R is M - N.
 }
