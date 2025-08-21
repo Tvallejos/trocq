@@ -65,4 +65,18 @@ pred mk-etas i:list term, i:list term, i:list term, i: term, o:list term.
 mk-etas SrcArgs DestArgs TyDest KAppTyArgs REtas :-
   mk-etas-priv SrcArgs DestArgs TyDest 1 {std.length DestArgs} KAppTyArgs REtas.
 
+pred compose-path i:list term, i:term, i:term o: term.
+compose-path [] End _ End.
+compose-path [Argk|Args] End ITy {{ @eq_trans lp:ITy _ _ _ lp:Argk lp:R }} :-
+  compose-path Args End ITy R.
+
+% List of src args, list of dest args and their types, K applied to type parameters, equalities src = dest, type of K TyParam Dest.
+% returns (ap eta1 s1 d1 e1) @ ... @ ap etan sn dn en.
+pred mk-chain i:list term, i:list term, i:list term, i:term, i:list term, i:term, o:term.
+mk-chain SrcArgs DestArgs DestArgsTy K Eqs ITyTy R :-
+  mk-etas SrcArgs DestArgs DestArgsTy K REtas,
+  mk-aps-etas DestArgsTy ITyTy REtas SrcArgs DestArgs Eqs Raps,
+  compose-path Raps {{ @eq_refl lp:ITyTy lp:B }} ITyTy RSkel,
+  coq.elaborate-skeleton RSkel _ R ok.
+
 }

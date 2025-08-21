@@ -8,8 +8,8 @@ namespace derive.injK {
 % typaramno, constructors, type of constructors, for every constructor
 pred mk-injK-typesK i:int, i: list constructor, i:list term, i:list term, o:list (list term).
 
-% TyParam, ArgNo, injKTy so far, Function, RHS path.
-pred add-concl i:int, i:int, i:term, i:term, i:term, o: term.
+% % TyParam, ArgNo, injKTy so far, Function, RHS path.
+% pred add-concl i:int, i:int, i:term, i:term, i:term, o: term.
 
 pred add-equalities i:int, i:int, i:term, o:term.
 add-equalities 0 0 T T.
@@ -27,22 +27,49 @@ add-equalities N M (prod AN1 ATy a1\ (Bo a1))
     add-equalities O M (Bo a1) (R a1).
 
 pred get-injectors i:list term, i: list int, o: list (list term), o:list (list int).
-get-injectors [] [] [].
+get-injectors [] [] [] [].
 get-injectors [K|Ks] [ArgNo|ArgNos] [R|RS] [Tmp|Tmps]:- 
   std.iota ArgNo Tmp,
   std.map Tmp (x\r\ sigma Add1 Ans\ Add1 is x + 1, injections-db K Add1 Ans, r = Ans) R,
   get-injectors Ks ArgNos RS Tmps.
 
 % TyParam, ArgNo, type of duplicated args + eq, injector, dest path no, RHS path (dflt dummy).
-pred add-concl i:int, i:int, i:term, i:term, i:int, i:term, o:term.
-add-concl 0 0 _ Injtor _ RHS R :-
-  %WIP REFACTORING.
+pred add-concl i:int, i:int, i:int, i:term, i:term, i:int, i:term, i:term, i:list term, i:list term, i: list term, o:term.
+add-concl 0 M ArgNo _ Injtor _ RHS K SrcArgs DestArgs Eqs R :-
+  M > ArgNo,
+  !,
+  % check: perhaps srcargs, destargs, and eqs come reversed.
+  std.map DestArgs (x\r\ sigma R\ coq.typecheck x R ok, r = R) DestArgsTy,
+  coq.typecheck {coq.mk-app K DestArgs} ITyTy ok,
+  mk-chain SrcArgs DestArgs DestArgsTy K Eqs ITyTy Chain, 
+  mk-app Injtor [Chain] LHS,
+  coq.mk-app {{lib:@elpi.eq}} [{{ _ }}, LHS, RHS] RSkel, 
+  coq.elaborate-skeleton RSkel _ R ok.
+add-concl 0 M ArgNo (prod AN1 ATy a1\ prod AN2 ATy a2\ prod EN (ETy a1 a2) e\ (Bo a1 a2 e)) Injtor DestPathNo RHS K SrcArgs DestArgs Eqs 
+                  (prod AN1 ATy a1\ prod AN2 ATy a2\ prod EN (ETy a1 a2) e\ (R a1 a2 e)) :-
+  O is M + 1,
+  @pi-decl AN1 ATy a1\
+  @pi-decl AN2 ATy a2\
+  @pi-decl EN (ETy a1 a2) e\
+    coq.mk-app Injtor [a1 a2] (NewInjtor a1 a2),
+    NewRHS = RHS,
+    % if (ArgNo = DestPathNo)
+    %   (NewRHS = e)
+    %   (NewRHS = RHS),
+    add-concl 0 O ArgNo (Bo a1 a2 e) NewInjtor DestPathNo NewRHS K [a1 | SrcArgs] [a2| DestArgs] [e | Eqs] (R a1 a2 e).
+add-concl N 0 ArgNo (prod AN1 ATy a1\ (Bo a1)) Injtor DestPathNo RHS K SrcArgs DestArgs Eqs 
+                  (prod AN1 ATy a1\ (R a1)) :-
+  M is N - 1,
+  @pi-decl AN1 ATy a1\
+    coq.mk-app Injtor [a1] (NewInjtor a1),
+    coq.mk-app K [a1] (NewK a1),
+    add-concl M 0 ArgNo (Bo a1) (NewInjtor a1) DestPathNo RHS (NewK a1) SrcArgs DestArgs Eqs (R a).
 
 % type of duplicated arguments + eq, list of injectors, list of dest path number.
 pred add-conclss i:term, i:int, i:list int, i:list (list term), i:list (list int), o: list (list term).
 add-conclss _ _ [] [] [] [].
 add-conclss PTy TyParamNo [ArgNo|ArgNos] [Injs|Injss] [DestNos|DestNoss] [InjTys|InjTyss] :-
-  std.map2 Injs DestNos (x\y\r\ sigma R\ add-concl TyParamNo ArgNo PTy x y {{Type}} R, r = R) InjTys,
+  std.map2 Injs DestNos (x\y\r\ sigma R\ add-concl TyParamNo 0 ArgNo PTy x y {{Type}} [] [] [] R, r = R) InjTys,
   add-conclss PTy TyParamNo ArgNos Injss DestNoss InjTyss.
 
 %TyParamNo, constructors, type of constructors, output.
