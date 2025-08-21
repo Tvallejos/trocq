@@ -30,4 +30,39 @@ pred count-args i:int, i:term, o:int.
 count-args N T R :-
   coq.count-prods T M,
   R is M - N.
+
+% given list eta-src type, eta-RT, list of etas, list of src, list of dest, list of src = dest, 
+% builds the corresponding ap.
+pred mk-aps-etas i:list term, i:term, i:list term, i:list term, i:list term, i:list term, o:list term.
+mk-aps-etas [] _ [] [] [] [] [].
+mk-aps-etas [DTy|DestTys] ITyTy [Eta|Etas] [SA|SrcArgs] [DA|DestArgs] [Eq|Eqs] [RE | RS] :-
+  Ap = {{ eq_f }},
+  coq.mk-app Ap [DTy,ITyTy,Eta,SA,DA,Eq] R,
+  coq.elaborate-skeleton R _ RE ok,
+  mk-aps-etas DestTys ITyTy Etas SrcArgs DestArgs Eqs RS.
+
+% K comes with type arguments already applied.
+pred mk-ith-eta i:int, i:list term, i:list term, i:list term, i:term, o:term.
+mk-ith-eta I MArgs DestArgs DestTys K FR :- 
+  J is I - 1,
+  std.take J DestArgs Done, % list of args already processed.
+  std.drop I MArgs MTODO, % list of args to yet process
+  std.nth J DestTys CurrTy,
+  (pi curr\ 
+    coq.mk-app K {std.append Done [curr|MTODO]} (KArgs curr)),
+  FR = fun `R` CurrTy (r\ (KArgs r)).
+
+
+% KDest comes with the type arguments already applied.
+pred mk-etas-priv i:list term, i:list term, i:list term, i:int, i:int, i: term, o:list term.
+mk-etas-priv _ _ _ M N  _ [] :- M > N.
+mk-etas-priv SrcArgs DestArgs DestTys I N KDest [R| RS] :- 
+  J is I + 1,
+  mk-ith-eta I SrcArgs DestArgs DestTys KDest R,
+  mk-etas-priv SrcArgs DestArgs DestTys J N KDest RS.
+
+pred mk-etas i:list term, i:list term, i:list term, i: term, o:list term.
+mk-etas SrcArgs DestArgs TyDest KAppTyArgs REtas :-
+  mk-etas-priv SrcArgs DestArgs TyDest 1 {std.length DestArgs} KAppTyArgs REtas.
+
 }
