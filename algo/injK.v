@@ -16,6 +16,7 @@ Definition conv (A : Type) (x y : A) (p: x = y)
   match p as p0 in _ = t return (P t p0)
    with eq_refl => P0 end.
 
+Register conv as elpi.derive.conv.
 
 Elpi Db derive.injectionsK.db lp:{{
 
@@ -36,6 +37,10 @@ Elpi Accumulate File algo_utils.
 Elpi Accumulate Db derive.injectionsK.db.
 Elpi Accumulate Db derive.injections.db.
 Elpi Accumulate File injK.
+(* Elpi Query lp:{{ 
+  %std.nth 0 {std.iota 5} L.
+  R = {{lib:@elpi.derive.conv}}.
+}}. *)
 Elpi Accumulate lp:{{
   main [str I] :- !, coq.locate I (indt GR),
     coq.gref->id (indt GR) Tname,
@@ -50,10 +55,10 @@ Elpi Accumulate lp:{{
 From Trocq.Tests Require Import coverage.
 Elpi derive.projK Box.
 Elpi derive.injections Box.
-Elpi Trace Browser.
 Elpi derive.injectionsK Box.
-Print Box_injK11.
 Elpi derive.projK WrapMore.
 Elpi derive.injections WrapMore.
 Elpi derive.injectionsK WrapMore.
-Print WrapMore_injK32.
+Elpi derive.projK List.
+Elpi derive.injections List.
+Elpi derive.injectionsK List.
