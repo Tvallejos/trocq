@@ -50,4 +50,10 @@ Elpi Accumulate lp:{{
 From Trocq.Tests Require Import coverage.
 Elpi derive.projK Box.
 Elpi derive.injections Box.
+Elpi Trace Browser.
 Elpi derive.injectionsK Box.
+Print Box_injK11.
+Elpi derive.projK WrapMore.
+Elpi derive.injections WrapMore.
+Elpi derive.injectionsK WrapMore.
+Print WrapMore_injK32.

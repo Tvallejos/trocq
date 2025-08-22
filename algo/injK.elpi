@@ -1,4 +1,4 @@
-shorten derive.algo-utils.{duplicate-arguments,count-args, name-prefix}.
+shorten derive.algo-utils.{duplicate-arguments,count-args, name-prefix, mk-chain, name-ijs}.
 
 namespace derive.injK {
 
@@ -30,78 +30,92 @@ pred get-injectors i:list term, i: list int, o: list (list term), o:list (list i
 get-injectors [] [] [] [].
 get-injectors [K|Ks] [ArgNo|ArgNos] [R|RS] [Tmp|Tmps]:- 
   std.iota ArgNo Tmp,
-  std.map Tmp (x\r\ sigma Add1 Ans\ Add1 is x + 1, injections-db K Add1 Ans, r = Ans) R,
+  std.map Tmp (x\r\ sigma Add1\ Add1 is x + 1, r = Add1) Add1,
+  std.map Add1 (x\r\ sigma R\ injections-db K x R, r = R) R,
   get-injectors Ks ArgNos RS Tmps.
 
 % TyParam, ArgNo, type of duplicated args + eq, injector, dest path no, RHS path (dflt dummy).
+% 
 pred add-concl i:int, i:int, i:int, i:term, i:term, i:int, i:term, i:term, i:list term, i:list term, i: list term, o:term.
-add-concl 0 M ArgNo _ Injtor _ RHS K SrcArgs DestArgs Eqs R :-
-  M > ArgNo,
+add-concl 0 ArgNo ArgNo _ Injtor _ RHS K SrcArgs_R DestArgs_R Eqs_R R :-
+  % M > ArgNo,
   !,
-  % check: perhaps srcargs, destargs, and eqs come reversed.
+  std.rev SrcArgs_R SrcArgs,
+  std.rev DestArgs_R DestArgs,
+  std.rev Eqs_R Eqs,
   std.map DestArgs (x\r\ sigma R\ coq.typecheck x R ok, r = R) DestArgsTy,
   coq.typecheck {coq.mk-app K DestArgs} ITyTy ok,
   mk-chain SrcArgs DestArgs DestArgsTy K Eqs ITyTy Chain, 
-  mk-app Injtor [Chain] LHS,
+  coq.mk-app Injtor [Chain] LHS,
   coq.mk-app {{lib:@elpi.eq}} [{{ _ }}, LHS, RHS] RSkel, 
   coq.elaborate-skeleton RSkel _ R ok.
 add-concl 0 M ArgNo (prod AN1 ATy a1\ prod AN2 ATy a2\ prod EN (ETy a1 a2) e\ (Bo a1 a2 e)) Injtor DestPathNo RHS K SrcArgs DestArgs Eqs 
                   (prod AN1 ATy a1\ prod AN2 ATy a2\ prod EN (ETy a1 a2) e\ (R a1 a2 e)) :-
+  coq.say "processing args + eq argument number " M, !,
   O is M + 1,
   @pi-decl AN1 ATy a1\
   @pi-decl AN2 ATy a2\
   @pi-decl EN (ETy a1 a2) e\
-    coq.mk-app Injtor [a1 a2] (NewInjtor a1 a2),
-    NewRHS = RHS,
-    % if (ArgNo = DestPathNo)
-    %   (NewRHS = e)
-    %   (NewRHS = RHS),
-    add-concl 0 O ArgNo (Bo a1 a2 e) NewInjtor DestPathNo NewRHS K [a1 | SrcArgs] [a2| DestArgs] [e | Eqs] (R a1 a2 e).
+    coq.mk-app Injtor [a1, a2] (NewInjtor a1 a2),
+    if (M = DestPathNo)
+      (coq.say "new e is currrent", (NewRHS e) = e)
+      ((NewRHS e) = RHS),
+    add-concl 0 O ArgNo (Bo a1 a2 e) (NewInjtor a1 a2) DestPathNo (NewRHS e) K [a1 | SrcArgs] [a2| DestArgs] [e | Eqs] (R a1 a2 e).
+
 add-concl N 0 ArgNo (prod AN1 ATy a1\ (Bo a1)) Injtor DestPathNo RHS K SrcArgs DestArgs Eqs 
                   (prod AN1 ATy a1\ (R a1)) :-
+  coq.say "processing 1 type argument",
   M is N - 1,
   @pi-decl AN1 ATy a1\
     coq.mk-app Injtor [a1] (NewInjtor a1),
     coq.mk-app K [a1] (NewK a1),
-    add-concl M 0 ArgNo (Bo a1) (NewInjtor a1) DestPathNo RHS (NewK a1) SrcArgs DestArgs Eqs (R a).
+    add-concl M 0 ArgNo (Bo a1) (NewInjtor a1) DestPathNo RHS (NewK a1) SrcArgs DestArgs Eqs (R a1).
 
 % type of duplicated arguments + eq, list of injectors, list of dest path number.
-pred add-conclss i:term, i:int, i:list int, i:list (list term), i:list (list int), o: list (list term).
-add-conclss _ _ [] [] [] [].
-add-conclss PTy TyParamNo [ArgNo|ArgNos] [Injs|Injss] [DestNos|DestNoss] [InjTys|InjTyss] :-
-  std.map2 Injs DestNos (x\y\r\ sigma R\ add-concl TyParamNo 0 ArgNo PTy x y {{Type}} [] [] [] R, r = R) InjTys,
-  add-conclss PTy TyParamNo ArgNos Injss DestNoss InjTyss.
+% todo: add K applied to typaram
+pred add-conclss i:list term, i:list term, i:int, i:list int, i:list (list term), i:list (list int), o: list (list term).
+add-conclss [] [] _ [] [] [] [].
+add-conclss [PTy|PTys] [K|Ks] TyParamNo [ArgNo|ArgNos] [Injs|Injss] [DestNos|DestNoss] [InjTys|InjTyss] :-
+  std.map2 Injs DestNos (x\y\r\ sigma R\ add-concl TyParamNo 0 ArgNo PTy x y {{Type}} K [] [] [] R, r = R) InjTys, 
+  add-conclss PTys Ks TyParamNo ArgNos Injss DestNoss InjTyss.
 
 %TyParamNo, constructors, type of constructors, output.
 % for every constructor, 
 % collects its injectors and build the corresponding type for every injector
 pred mk-injK-types i:int, i: list constructor, i:list term, o:list (list term).
-mk-injK-types TyParamNo KNs KTys [] :-
+mk-injK-types TyParamNo KNs KTys InjTyss :-
   std.map KTys (x\ r\ sigma R\ count-args TyParamNo x R, r = R) ArgNos,
   std.map2 KTys ArgNos 
     (x\ y\ r\ sigma ArgNo R1 R2\ 
       duplicate-arguments TyParamNo y x R1,
       add-equalities TyParamNo y R1 R2,
       r = R2) PTy,
-  get-injectors {std.map KNs (x\ r\ r = global (indc x))} ArgNos Injss ArgNos,
-  add-conclss PTy Injss ArgNos InjTys,
-
-  coq.say "Injectorss " {std.flatten Injss},
-  coq.say "constructor types " KTys,
-  coq.say " duplicated types " PTy.
+  std.map KNs (x\ r\ r = global (indc x)) Ks,
+  get-injectors Ks ArgNos Injss DestNoss,
+  add-conclss PTy Ks TyParamNo ArgNos Injss DestNoss InjTyss.
 
 
 pred implement-injK-types i:int, i: list constructor, i:list term, i:list (list term), o:list term.
-implement-injK-types TyParamNo KNs KTys RTys [].
+implement-injK-types _TyParamNo _KNs _KTys _RTys [].
 
 
 pred main i:inductive, i:string, o:list prop.
 main GR Prefix Clauses :- std.do! [
   
+  Name is Prefix ^ "injK",
+  coq.ensure-fresh-global-id Name FName,
   coq.env.indt GR _ TyParamNo _ _ KNs KTys,
-  Ind = (global (indt GR)),
+  % Ind = (global (indt GR)),
   mk-injK-types TyParamNo KNs KTys RTys, 
-  implement-injK-types TyParamNo KNs KTys RTys RS,
+  Register = (k\j\c\ (injectionsK-db (global (indc k)) j (global (const c)))),
+  coq.say "RTys " RTys,
+  name-ijs FName 1 GR KNs RTys Register Clausess,
+  implement-injK-types TyParamNo KNs KTys RTys _RS,
+  std.flatten Clausess Clauses,
+  ClausesFin = [injectionsK-done (global (indt GR)) | Clauses],
+  std.forall ClausesFin (x\
+    coq.elpi.accumulate _ "derive.injectionsK.db" (clause _ _ x)
+  ),
   % coq.elaborate-skeleton MRTy _ MRTyE ok,
   % TR = global (indt GRR),
   % coq.gref->id (indt GRR) Rname,
@@ -117,11 +131,6 @@ main GR Prefix Clauses :- std.do! [
   % coq.ensure-fresh-global-id Name FName,
   % coq.env.add-const FName Re MRTyE _ C,
   % I = global (indt GR),
-  % Clauses = [rm-done I, rm-db I (global (const C))],
-  Clauses = [],
-  std.forall Clauses (x\
-    coq.elpi.accumulate _ "derive.Rm.db" (clause _ _ x)
-  ),
 ].
 
 }
