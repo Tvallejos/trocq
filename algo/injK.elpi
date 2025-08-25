@@ -35,8 +35,9 @@ add-concl 0 ArgNo ArgNo _ Injtor _ RHS K SrcArgs_R DestArgs_R Eqs_R R :-
   std.rev DestArgs_R DestArgs,
   std.rev Eqs_R Eqs,
   std.map DestArgs (x\r\ sigma R\ coq.typecheck x R ok, r = R) DestArgsTy,
-  coq.typecheck {coq.mk-app K DestArgs} ITyTy ok,
-  mk-chain SrcArgs DestArgs DestArgsTy K Eqs ITyTy Chain, 
+  coq.mk-app K DestArgs Ind,
+  coq.typecheck Ind ITyTy ok,
+  mk-chain SrcArgs DestArgs DestArgsTy K Eqs ITyTy Ind Chain, 
   coq.mk-app Injtor [Chain] LHS,
   coq.mk-app {{lib:@elpi.eq}} [{{ _ }}, LHS, RHS] RSkel, 
   coq.elaborate-skeleton RSkel _ R ok.
