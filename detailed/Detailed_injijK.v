@@ -75,14 +75,6 @@ refine (conv _ u1 u2 p1 (Wrap_Pred_inj11K u1) _).
 exact (@eq_refl (@eq Unit u1 u1) (@eq_refl Unit u1)).
 Defined.
 
-(* Goal forall n1 n2 n3 (p : S n1 = n2) (p2 : S n2 = n3), S (S n1) = n3.
-Proof. move=> n1 n2 n3 e1 e2.
-set P := fun t => S t = n3.
-refine (eq_ind_r P _ e1).
-unfold P.
-refine (eq_ind_r (fun t => t = n3) eq_refl e2).
-Qed. *)
-
 Notation Wrap_Pred := (fun w1 w2 wR => Wrap_mR w1 w2 (Wrap_Rm w1 w2 wR) = wR).
 Definition Wrap_mRRmK : forall (w1 w2 : Wrap) (wR : Wrap_R w1 w2), 
     Wrap_mR w1 w2 (Wrap_Rm w1 w2 wR) = wR.
@@ -197,9 +189,9 @@ Proof.
 refine (fun u1 u2 p=> _).
 refine (fun u3 u4 p2=> _).
 refine (fun u5 u6 p3=> _).
-refine (conv _ u1 u2 p (fun t p => WrapMore_Pred_inj32K u1 t p u3 u4 p2 u5 u6 p3) _).
-refine (conv _ u3 u4 p2 (fun t p => WrapMore_Pred_inj32K u1 u1 1 u3 t p u5 u6 p3) _).
-refine (conv _ u5 u6 p3 (fun t p => WrapMore_Pred_inj32K u1 u1 1 u3 u3 1 u5 t p) _).
+refine (conv _ u1 u2 p  ((fun t p => WrapMore_Pred_inj32K u1 t p u3 u4 p2 u5 u6 p3)) _).
+refine (conv _ u3 u4 p2 ((fun t p => WrapMore_Pred_inj32K u1 u1 1 u3 t p u5 u6 p3)) _).
+refine (conv _ u5 u6 p3 ((fun t p => WrapMore_Pred_inj32K u1 u1 1 u3 u3 1 u5 t p) ) _).
 refine (@eq_refl (@eq Unit u3 u3) (@eq_refl Unit u3)).
 Defined.
 
@@ -262,7 +254,7 @@ Definition Box_inj11K :
 Proof.
 refine (fun A2=> _).
 refine (fun a1 a2 p=> _).
-refine (conv _ a1 a2 p (fun t p => Box_Pred_inj11K A2 a1 t p) _).
+refine (conv A2 a1 a2 p (fun t p => Box_Pred_inj11K A2 a1 t p) _).
 refine (@eq_refl (@eq A2 a1 a1) (@eq_refl A2 a1)).
 Defined.
 

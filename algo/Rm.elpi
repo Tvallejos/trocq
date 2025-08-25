@@ -44,7 +44,7 @@ process-args Ksrc Kdest 0 TyArgsNo _ Goal TySrc TyDest ITyTy R:-
   std.drop TyArgsNo TyDestArgs DestArgs,
   coq.mk-app KDest {std.take TyArgsNo TyDestArgs} KAppTyArgs,
   mk-equalities TySrc ITyTy DestArgs Eqs,
-  mk-chain SrcArgs DestArgs TyDest KAppTyArgs Eqs ITyTy R. 
+  mk-chain SrcArgs DestArgs TyDest KAppTyArgs Eqs ITyTy B R. 
 process-args Ksrc Kdest N TyArgsNo (prod AN1 A1Ty a1\ prod AN2 A2Ty a2\ prod ARN (ARTy a1 a2) ar\ (Bo a1 a2 ar)) Goal TySrc TyDest ITyTy 
                                    (fun AN1 A1Ty a1\ fun AN2 A2Ty a2\ fun ARN (ARTy a1 a2) ar\ (RF a1 a2 ar)):- 
   M is N - 1,
