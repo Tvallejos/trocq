@@ -72,11 +72,11 @@ compose-path [Argk|Args] End ITy {{ @eq_trans lp:ITy _ _ _ lp:Argk lp:R }} :-
 
 % List of src args, list of dest args and their types, K applied to type parameters, equalities src = dest, type of K TyParam Dest.
 % returns (ap eta1 s1 d1 e1) @ ... @ ap etan sn dn en.
-pred mk-chain i:list term, i:list term, i:list term, i:term, i:list term, i:term, o:term.
-mk-chain SrcArgs DestArgs DestArgsTy K Eqs ITyTy R :-
+pred mk-chain i:list term, i:list term, i:list term, i:term, i:list term, i:term, i:term, o:term.
+mk-chain SrcArgs DestArgs DestArgsTy K Eqs ITyTy RHS R :-
   mk-etas SrcArgs DestArgs DestArgsTy K REtas,
   mk-aps-etas DestArgsTy ITyTy REtas SrcArgs DestArgs Eqs Raps,
-  compose-path Raps {{ @eq_refl lp:ITyTy lp:B }} ITyTy RSkel,
+  compose-path Raps {{ @eq_refl lp:ITyTy lp:RHS }} ITyTy RSkel,
   coq.elaborate-skeleton RSkel _ R ok.
 
 pred name-ij i:string, i:int, i:int, i:inductive, i:constructor, i:list term, i: constructor -> int -> constant -> prop, o:list prop.
