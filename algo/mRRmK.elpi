@@ -3,6 +3,68 @@ shorten derive.algo-utils.{mk-chain}.
 
 namespace derive.mRRmK {
 
+% todo perhaps unify with Rm mkBranches
+pred mkBranches i:list term, i:list term, i:list term, i:list term, i:term, i:term o:list term.
+mkBranches [] [] [] [] _ _ [].
+mkBranches [KS|KsS] [KD|KsD] [KTy|KTys] [KTyR|KTyRs] ITyTy Goal [].
+  % mkBranch KS KD {coq.count-prods KTy} KTyR ITyTy Goal R,
+  % mkBranches KsS KsD KTys KTyRs ITyTy Goal Rs.
+
+% todo: perhaps unify with implement-Rm
+pred implement-mRRmK i:int, i:int, i:term, i:list term, i:list term, i:list term, i:list term, i:term, i:term, o:term.
+% Pred comes with Type parameters applied 
+% RInd comes with Type parameters applied 
+% implement-mRRmK 0 _TyParamNo (prod IN1 ITy1 i1\ prod IN2 ITy2 i2\ prod ARN (ARTy i1 i2) ar\ (Bo i1 i2 ar)) KsS KsD KTys KTyRs Pred RInd
+%             (fix `f` 2 RT f\ fun IN1 ITy1 i1\ fun IN2 ITy2 i2\ fun ARN (ARTy i1 i2) ar\ (R f i1 i2 ar)) :-
+%   coq.safe-dest-app ITy1 Ind _, 
+%   Ind = (global (indt GR)),
+%   coq.env.recursive? GR, !,
+%   RT = (prod IN1 ITy1 i1\ prod IN2 ITy2 i2\ prod ARN (ARTy i1 i2) ar\ (Bo i1 i2 ar)),
+%   coq.mk-app RInd [Pred] RIndP,
+%   @pi-decl `f` RT f\
+%   @pi-decl IN1 ITy1 i1\
+%   @pi-decl IN2 ITy2 i2\
+%   @pi-decl ARN (ARTy i1 i2) ar\
+%     (rm-db Ind f => 
+%       mkBranches KsS KsD KTys KTyRs ITy2 Pred (Brs f)),
+%     std.append (Brs f) [i1,i2,ar] (IndArgs f i1 i2 ar),
+%     coq.mk-app RIndP (IndArgs f i1 i2 ar) (R f i1 i2 ar).
+implement-mRRmK 0 _TyParamNo (prod IN1 ITy1 i1\ prod IN2 ITy2 i2\ prod ARN (ARTy i1 i2) ir\ (EQ i1 i2 ir)) KsS KsD KTys KTyRs Pred RInd
+            (fun IN1 ITy1 i1\ fun IN2 ITy2 i2\ fun ARN (ARTy i1 i2) ar\ (R i1 i2 ar)) :-
+  coq.mk-app RInd [Pred] RIndP,
+  @pi-decl IN1 ITy1 i1\
+  @pi-decl IN2 ITy2 i2\
+  @pi-decl ARN (ARTy i1 i2) ar\
+    mkBranches KsS KsD KTys KTyRs ITy2 Pred Brs,
+    std.append Brs [i1,i2,ar] (IndArgs i1 i2 ar),
+    coq.mk-app RIndP (IndArgs i1 i2 ar) (R i1 i2 ar).
+% implement-mRRmK N TyParamNo (prod AN1 ATy1 a1\ prod AN2 ATy2 a2\ prod ARN (ARTy a1 a2) ar\ (Bo a1 a2 ar)) KsS KsD KTys KTyRs Pred RInd
+%             (fun AN1 ATy1 a1\ fun AN2 ATy2 a2\ fun ARN (ARTy a1 a2) ar\ (R a1 a2 ar)) :-
+%   M is N - 1,
+%   @pi-decl AN1 ATy1 a1\ %A1 : Type
+%   @pi-decl AN2 ATy2 a2\ %A2 : Type
+%   @pi-decl ARN (ARTy a1 a2) ar\ % AR : Param2b0.Rel A1 A2
+%     coq.mk-app Pred [a1,a2,ar] (NewPred a1 a2 ar),
+    
+%     (ARType a1 a2) = {{ lp:a1 -> lp:a2 -> Type }},
+%     coq.elaborate-skeleton ar (ARType a1 a2) (RelAR a1 a2 ar) ok,
+
+%     coq.mk-app RInd [a1,a2,ar] (NewRIndSkel a1 a2 ar),
+%     coq.elaborate-skeleton (NewRIndSkel a1 a2 ar) _ (NewRInd a1 a2 ar) ok,
+
+%     std.map KsS (x\ r\ sigma TMP\ coq.mk-app x [a1] TMP, r = TMP) (NewKsS a1),
+%     std.map KsD (x\ r\ sigma TMP\ coq.mk-app x [a2] TMP, r = TMP) (NewKsD a2),
+%     std.map KTys (x\ r\ sigma TMP\ coq.subst-prod [a2] x TMP, r = TMP) (NewKTys a2),
+%     std.map KTyRs (x\ r\ sigma TMP1\ coq.subst-prod [a1,a2,(RelAR a1 a2 ar)] x TMP1, r = TMP1) (NewKTyRs a1 a2 ar),
+%     Rm = {{ @Trocq.Hierarchy.R_in_map }},
+%     coq.mk-app Rm [a1, a2, ar] (RMS a1 a2 ar),
+%     % coq.elaborate-skeleton (RMS a1 a2 ar) _ (RM a1 a2 ar) ok,
+%     ar-db a1 a2 ar ==>
+%     rm-db a1 (RMS a1 a2 ar) ==>
+%     implement-mRRmK M TyParamNo (Bo a1 a2 ar) (NewKsS a1) (NewKsD a2) (NewKTys a2) (NewKTyRs a1 a2 ar) (NewPred a1 a2 ar) (NewRInd a1 a2 ar) (R a1 a2 ar).
+
+
+
 pred main i:inductive, i:string, o:list prop.
 main GR Prefix Clauses :- std.do! [
 
@@ -14,15 +76,17 @@ main GR Prefix Clauses :- std.do! [
   mk-mR-type-mRRmK TyParamNo TRTy IndMap {{ Type }} TR mR-db rm-db MRTy,
   coq.elaborate-skeleton MRTy _ MRTyE ok,
   % coq.say "MRTyE" MRTyE,
-%   TR = global (indt GRR),
-%   coq.gref->id (indt GRR) Rname,
-%   RInductionName is Rname ^ "_ind",
-%   coq.locate RInductionName RInd,
-%   coq.prod->fun MRTyE Pred,
-%   coq.env.indt GRR _ _ _ _ _ KTyRs,
-%   std.map KNs (x\ r\ r = (global (indc x))) Ks,
-%   implement-Rm TyParamNo TyParamNo MRTyE Ks Ks KTys KTyRs Pred (global RInd) R,
-%   coq.elaborate-skeleton R MRTyE Re ok,
+  TR = global (indt GRR),
+  coq.gref->id (indt GRR) Rname,
+  RInductionName is Rname ^ "_ind",
+  coq.locate RInductionName RInd,
+  coq.prod->fun MRTyE Pred,
+  coq.env.indt GRR _ _ _ _ _ KTyRs,
+  std.map KNs (x\ r\ r = (global (indc x))) Ks,
+  implement-mRRmK TyParamNo TyParamNo MRTyE Ks Ks KTys KTyRs Pred (global RInd) R,
+  coq.say "Implemented mRRmK " R,
+  coq.elaborate-skeleton R MRTyE Re E,
+  coq.say "Erroring mRRmK E" E,
   Name is Prefix ^ "mRRmK",
   coq.ensure-fresh-global-id Name FName,
   coq.env.add-const FName Re MRTyE _ C,
