@@ -8,7 +8,8 @@ From elpi.apps Require Import derive.param2.
 From elpi.apps Require Import derive.bcongr. (* for eq_f register *) 
 From Trocq.Algo Require Import mymap.
 From elpi.apps Require Import derive.induction.
-From Trocq Require Import HoTT_additions Hierarchy.
+(* From Trocq Require Import HoTT_additions Hierarchy. *)
+From Trocq Require Import Hierarchy.
 Unset Uniform Inductive Parameters. 
 
 Elpi Db derive.Rm.db lp:{{
