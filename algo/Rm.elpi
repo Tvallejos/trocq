@@ -1,4 +1,4 @@
-shorten derive.common-algo.{mk-mR-type}.
+shorten derive.common-algo.{mk-mR-type-Rm}.
 shorten derive.algo-utils.{mk-chain}.
 
 namespace derive.Rm {
@@ -147,7 +147,7 @@ main GR Prefix Clauses :- std.do! [
   param Ind Ind TR,
   coq.typecheck TR TRTy _,
   mymap-def Ind IndMap,
-  mk-mR-type TyParamNo TRTy IndMap {{ Type }} TR tt MRTy,
+  mk-mR-type-Rm TyParamNo TRTy IndMap {{ Type }} TR MRTy,
   coq.elaborate-skeleton MRTy _ MRTyE ok,
   TR = global (indt GRR),
   coq.gref->id (indt GRR) Rname,
@@ -157,7 +157,7 @@ main GR Prefix Clauses :- std.do! [
   coq.env.indt GRR _ _ _ _ _ KTyRs,
   std.map KNs (x\ r\ r = (global (indc x))) Ks,
   implement-Rm TyParamNo TyParamNo MRTyE Ks Ks KTys KTyRs Pred (global RInd) R,
-  coq.elaborate-skeleton R MRTyE Re ok,
+  coq.elaborate-skeleton R MRTyE Re E,
   Name is Prefix ^ "Rm",
   coq.ensure-fresh-global-id Name FName,
   coq.env.add-const FName Re MRTyE _ C,

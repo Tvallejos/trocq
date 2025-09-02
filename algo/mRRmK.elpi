@@ -1,0 +1,37 @@
+shorten derive.common-algo.{mk-mR-type-mRRmK}.
+shorten derive.algo-utils.{mk-chain}.
+
+namespace derive.mRRmK {
+
+pred main i:inductive, i:string, o:list prop.
+main GR Prefix Clauses :- std.do! [
+
+  coq.env.indt GR _ TyParamNo _ _ KNs KTys,
+  Ind = (global (indt GR)),
+  param Ind Ind TR,
+  coq.typecheck TR TRTy _,
+  mymap-def Ind IndMap,
+  mk-mR-type-mRRmK TyParamNo TRTy IndMap {{ Type }} TR mR-db rm-db MRTy,
+  coq.elaborate-skeleton MRTy _ MRTyE ok,
+  % coq.say "MRTyE" MRTyE,
+%   TR = global (indt GRR),
+%   coq.gref->id (indt GRR) Rname,
+%   RInductionName is Rname ^ "_ind",
+%   coq.locate RInductionName RInd,
+%   coq.prod->fun MRTyE Pred,
+%   coq.env.indt GRR _ _ _ _ _ KTyRs,
+%   std.map KNs (x\ r\ r = (global (indc x))) Ks,
+%   implement-Rm TyParamNo TyParamNo MRTyE Ks Ks KTys KTyRs Pred (global RInd) R,
+%   coq.elaborate-skeleton R MRTyE Re ok,
+  Name is Prefix ^ "mRRmK",
+  coq.ensure-fresh-global-id Name FName,
+  coq.env.add-const FName Re MRTyE _ C,
+  I = global (indt GR),
+  Clauses = [],
+%   Clauses = [rm-done I, rm-db I (global (const C))],
+  std.forall Clauses (x\
+    coq.elpi.accumulate _ "derive.Rm.db" (clause _ _ x)
+  ),
+].
+
+}
