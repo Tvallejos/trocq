@@ -128,7 +128,7 @@ refine (WrapMore_R_ind WrapMore_Pred _ _ _ w1 w2 wR).
   return 
 KWrap_R u1 u2 (Unit_mR u1 u2 t) b1 b2
 (Bool_mR b1 b2
-(injK.WrapMore_injections12
+(WrapMore_injections12
 (Unit_mymap u1) u2 (Bool_mymap b1)
 b2
 (bcongr.eq_f Unit WrapMore
@@ -143,7 +143,7 @@ with eq_refl => _ end).
   refine (match (Unit_mRRmK _ _ uR)^ in _ = t return 
   KWrap_R u1 u2 t b1 b2
 (Bool_mR b1 b2
-(injK.WrapMore_injections12
+(WrapMore_injections12
 (Unit_mymap u1) u2 (Bool_mymap b1)
 b2
 (bcongr.eq_f Unit WrapMore
