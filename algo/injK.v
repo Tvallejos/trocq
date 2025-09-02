@@ -8,7 +8,8 @@ From elpi Require Import elpi.
 From elpi.apps Require Import derive.bcongr. (* for eq_f register *) 
 (* From elpi.apps Require Import projK.  *)
 
-From Trocq Require Import HoTT_additions Hierarchy.
+From Trocq Require Import Hierarchy.
+(* From Trocq Require Import HoTT_additions Hierarchy. *)
 Unset Uniform Inductive Parameters. 
 
 Definition conv (A : Type) (x y : A) (p: x = y) 
