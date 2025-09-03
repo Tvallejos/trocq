@@ -157,7 +157,7 @@ main GR Prefix Clauses :- std.do! [
   coq.env.indt GRR _ _ _ _ _ KTyRs,
   std.map KNs (x\ r\ r = (global (indc x))) Ks,
   implement-Rm TyParamNo TyParamNo MRTyE Ks Ks KTys KTyRs Pred (global RInd) R,
-  coq.elaborate-skeleton R MRTyE Re E,
+  coq.elaborate-skeleton R MRTyE Re ok,
   Name is Prefix ^ "Rm",
   coq.ensure-fresh-global-id Name FName,
   coq.env.add-const FName Re MRTyE _ C,

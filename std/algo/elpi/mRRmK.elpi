@@ -1,5 +1,5 @@
 shorten derive.common-algo.{mk-mR-type-mRRmK}.
-shorten derive.algo-utils.{mk-chain}.
+shorten derive.algo-utils.{mk-chain, for-K-get-KI}.
 
 namespace derive.mRRmK {
 
@@ -72,6 +72,15 @@ mkBranches [] [] [] [] _ _ [] [].
 mkBranches [KS|KsS] [KD|KsD] [KTy|KTys] [KTyR|KTyRs] ITyTy Goal [KR|KRs] [R|Rs] :-
   mkBranch KS KD {coq.count-prods KTy} KTyR ITyTy Goal KR R,
   mkBranches KsS KsD KTys KTyRs ITyTy Goal KRs Rs.
+
+pred f i: constructor, i:int, o:term.
+f GRK I P :- 
+  injectionsK-db (global (indc GRK)) I P.
+
+pred for-K-get-injKs i:int, i:list constructor, i:list term, o: list int, o:list (list term).
+for-K-get-injKs TyParamNo KNs KTys ArgsNos InjKss :-
+  % F = (grk\ i\ p\ injectionsK-db (global (indc grk)) i p),
+  for-K-get-KI TyParamNo KNs KTys f ArgsNos InjKss.
 
 % todo: perhaps unify with implement-Rm
 % todo add KRs to other cases
@@ -148,6 +157,7 @@ main GR Prefix Clauses :- std.do! [
   coq.env.indt GRR _ _ _ _ KNRs KTyRs,
   std.map KNs (x\ r\ r = (global (indc x))) Ks,
   std.map KNRs (x\ r\ r = (global (indc x))) KRs,
+  for-K-get-injKs TyParamNo KNs KTys ArgsNos InjKss,
   implement-mRRmK TyParamNo TyParamNo MRTyE Ks Ks KTys KTyRs Pred (global RInd) KRs R,
   coq.say "Implemented mRRmK " R,
   coq.elaborate-skeleton R MRTyE Re E,

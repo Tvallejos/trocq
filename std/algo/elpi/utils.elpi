@@ -97,5 +97,24 @@ name-ijs FName I GR [Kn | KNs] [InjTys | InjTyss] F [Clauses | Clausess] :-
   In is I + 1,
   name-ij FName I 1 GR Kn InjTys F Clauses,
   name-ijs FName In GR KNs InjTyss F Clausess.
+
+% Returns the list of P of F K I P of a constructor. 
+pred get-KI i:constructor, i:int, i:int, i:(pred i:constructor, i:int, o:term), o:list term.
+get-KI _ Max Max _ [] :- !.
+get-KI GRK J Max F [P|PJs] :- 
+    I is J + 1,
+    F GRK I P,
+    get-KI GRK I Max F PJs.
+
+% for a list of P of F K I for a list of constructors 
+pred for-K-get-KI i:int, i:list constructor, i:list term, 
+i:(pred i:constructor, i:int, o:term),
+o: list int, o:list (list term).
+for-K-get-KI _ [] [] _ [] []:- !.
+for-K-get-KI TyParamNo [Kn|KNs] [KTy|KTys] F [ArgsNo|ArgsNos] [R|RS]:- 
+    count-args TyParamNo KTy ArgsNo,
+    get-KI Kn 0 ArgsNo F R,
+    for-K-get-KI TyParamNo KNs KTys F ArgsNos RS.
+
   
 }
