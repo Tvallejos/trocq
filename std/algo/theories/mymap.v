@@ -41,15 +41,3 @@ Elpi Accumulate lp:{{
   pred usage.
   usage :- coq.error "Usage: derive.mymap <object name>".
 }}. 
-
-
-Elpi Query lp:{{
-    coq.locate "option" (indt Option),
-    std.findall (mymap-def (global (indt Option)) _) Rules. % empty
-    %std.findall (mymap-db {{ option nat }} {{ option nat }} _) Rules. % non empty
-    %std.findall (mymap-db {{ nat }} {{ nat }} _) Rules. % non empty
-    std.findall (mymap-db {{ nat }} B C) Rules. % empty
-    std.findall (mymap-db A B C) Rules. % empty
-    std.findall (mymap-done _) Rules. % empty
-
-}}.
