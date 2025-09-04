@@ -14,7 +14,7 @@ Elpi derive.injections False.
 Elpi derive.isK False.
 Elpi derive.mR False.
 Elpi derive.Rm False.
-Elpi derive.injectionsK False.
+Elpi derive.injK False.
 
 Notation False_Pred := (fun w1 w2 wR => False_mR w1 w2 (False_Rm w1 w2 wR) = wR) (only parsing).
 Definition False_mRRmK : forall (w1 w2 : False) (wR : False_R w1 w2), False_mR w1 w2 (False_Rm w1 w2 wR) = wR.
@@ -60,7 +60,7 @@ Elpi derive.projK Wrap.
 Elpi derive.injections Wrap.
 Elpi derive.mR Wrap.
 Elpi derive.Rm Wrap.
-Elpi derive.injectionsK Wrap.
+Elpi derive.injK Wrap.
 
 Notation Wrap_Pred := (fun w1 w2 wR => Wrap_mR w1 w2 (Wrap_Rm w1 w2 wR) = wR) (only parsing).
 Definition Wrap_mRRmK : forall (w1 w2 : Wrap) (wR : Wrap_R w1 w2), 
@@ -69,6 +69,7 @@ Proof.
 refine (fun w1 w2 wR=> _).
 refine (Wrap_R_ind Wrap_Pred _ w1 w2 wR).
 - refine (fun u1 u2 uR => _). 
+simpl.
 refine (@eq_ind_r _ (Unit_Rm u1 u2 uR) (fun t=> KWrap1_R u1 u2 (Unit_mR u1 u2 t) = KWrap1_R u1 u2 uR) _ _ (Wrap_injK11 (Unit_mymap u1) u2 (Unit_Rm u1 u2 uR))).
 refine (@eq_ind_r _ uR (fun t => KWrap1_R u1 u2 t = KWrap1_R u1 u2 uR) _ _ (Unit_mRRmK u1 u2 uR)).
 exact (@eq_refl (Wrap_R (KWrap1 u1) (KWrap1 u2)) (KWrap1_R u1 u2 uR)).
@@ -79,7 +80,7 @@ Definition Wrap_mRRmK' : forall (w1 w2 : Wrap) (wR : Wrap_R w1 w2),
 Proof.
 refine (fun w1 w2 wR=> _).
 refine (Wrap_R_ind Wrap_Pred _ w1 w2 wR).
-- refine (fun u1 u2 uR => _). 
+- refine (fun u1 u2 uR => _).
 refine (match 
 (@eq_sym _ _ _ (Wrap_injK11 (Unit_mymap u1) u2 (Unit_Rm u1 u2 uR))) 
 (* (Wrap_injK11 (Unit_mymap u1) u2 (Unit_Rm u1 u2 uR))^ *)
@@ -101,24 +102,7 @@ Elpi derive.injections WrapMore.
 Elpi derive.isK WrapMore.
 Elpi derive.mR WrapMore.
 Elpi derive.Rm WrapMore.
-Elpi derive.injectionsK WrapMore.
-
-(* From elpi.apps Require Import eltac.rewrite.
-
-Axiom add_comm : forall x y, x + y = y + x.
-Axiom mul_comm : forall x y, x * y = y * x.
-
-Goal (forall x : nat, 1 + x = x + 1) -> 
-    forall y,  2 * ((y+y) + 1) = ((y + y)+1) * 2.
-Proof.
-    intro H. 
-    intro x.
-    eltac.rewrite H.
-    Show Proof.
-    eltac.rewrite mul_comm.
-    Show Proof.
-    exact eq_refl.
-Defined. *)
+Elpi derive.injK WrapMore.
 
 Notation WrapMore_Pred := (fun w1 w2 wR => WrapMore_mR w1 w2 (WrapMore_Rm w1 w2 wR) = wR) (only parsing).
 
@@ -130,10 +114,6 @@ refine (fun w1 w2 wR => _).
 refine (WrapMore_R_ind WrapMore_Pred _ _ _ w1 w2 wR).
 - refine (fun u1 u2 uR => _).
   refine (fun b1 b2 bR => _).
-  simpl.
-  (* Set Printing All. *)
-  cbn beta.
-  cbn iota beta delta.
   refine (match (WrapMore_injK11 (Unit_mymap u1) u2 (Unit_Rm _ _ uR) (Bool_mymap b1) b2 (Bool_Rm _ _ bR))^ in _ = t 
   return 
 KWrap_R u1 u2 (Unit_mR u1 u2 t) b1 b2
@@ -168,7 +148,6 @@ with eq_refl => _  end).
 set RWe1 := (WrapMore_injK12 (Unit_mymap u1) u2 (Unit_Rm _ _ uR) (Bool_mymap b1) b2 (Bool_Rm _ _ bR))^.
 set eqf1 := bcongr.eq_f _ _ _ _ _ _.
 set eqf2 := bcongr.eq_f _ _ _ _ _ _.
-Set Printing All.
 
 set T := WrapMore_injections12 (Unit_mymap u1) u2 (Bool_mymap b1) b2
 (bcongr.eq_f Unit WrapMore (KWrap^~ (Bool_mymap b1)) (Unit_mymap u1) u2
@@ -191,7 +170,8 @@ with eq_refl => eq_refl end
 - move=> wr1 wr2 wrR. 
 simpl.
 by rewrite WrapMore_injK21 Wrap_mRRmK.
-- move=> ? ? ? ? ? ? ? ? ?. 
+- move=> u1 u2 uR1 u3 u4 uR2 u5 u6 uR3.
+simpl.
   by rewrite /= WrapMore_injK31 WrapMore_injK32 WrapMore_injK33 !Unit_mRRmK.
 Defined.
 
@@ -202,7 +182,7 @@ Elpi derive.injections Nat.
 Elpi derive.isK Nat.
 Elpi derive.mR Nat.
 Elpi derive.Rm Nat.
-Elpi derive.injectionsK Nat.
+Elpi derive.injK Nat.
 
 Notation Nat_Pred := (fun n1 n2 nR => Nat_mR n1 n2 (Nat_Rm n1 n2 nR) = nR) (only parsing).
 
@@ -226,7 +206,7 @@ Elpi derive.injections Box.
 Elpi derive.isK Box.
 Elpi derive.mR Box.
 Elpi derive.Rm Box.
-Elpi derive.injectionsK Box.
+Elpi derive.injK Box.
 
 Notation Box_Pred := (fun A1 A2 (AR : Param40.Rel A1 A2) => fun b1 b2 bR => Box_mR A1 A2 AR b1 b2 (Box_Rm A1 A2 AR b1 b2 bR) = bR) (only parsing).
 
@@ -249,7 +229,7 @@ Elpi derive.injections Option.
 Elpi derive.isK Option.
 Elpi derive.mR Option.
 Elpi derive.Rm Option.
-Elpi derive.injectionsK Option.
+Elpi derive.injK Option.
 
 Elpi derive.param2 Prod.
 Elpi derive.mymap Prod.
@@ -258,7 +238,24 @@ Elpi derive.injections Prod.
 Elpi derive.isK Prod.
 Elpi derive.mR Prod.
 Elpi derive.Rm Prod.
-Elpi derive.injectionsK Prod.
+Elpi derive.injK Prod.
+
+Notation Prod_Pred := (fun A1 A2 (AR : Param40.Rel A1 A2) A3 A4 (AR2 : Param40.Rel A3 A4) => 
+  fun p1 p2 pR => Prod_mR A1 A2 AR A3 A4 AR2 p1 p2 (Prod_Rm A1 A2 AR A3 A4 AR2 p1 p2 pR) = pR) (only parsing).
+Definition Prod_mRRmK : 
+forall (A1 A2 : Type) (AR : Param40.Rel A1 A2),
+  forall (A3 A4 : Type) (AR2 : Param40.Rel A3 A4),
+  forall (p1 : Prod A1 A3) (p2 : Prod A2 A4) (pR: Prod_R A1 A2 AR A3 A4 AR2 p1 p2), 
+    Prod_mR A1 A2 AR A3 A4 AR2 p1 p2 (Prod_Rm A1 A2 AR A3 A4 AR2 p1 p2 pR) = pR.
+Proof.
+refine (fun A1 A2 AR=> _).
+refine (fun A3 A4 AR2=> _).
+refine (fun p1 p2 pR=> Prod_R_ind A1 A2 AR A3 A4 AR2 (Prod_Pred A1 A2 AR A3 A4 AR2) _ p1 p2 pR).
+refine (fun a1 a2 aR=> _).
+refine (fun b1 b2 bR=> _).
+simpl.
+by rewrite Prod_injK11 Prod_injK12 (R_in_mapK AR a1 a2 aR) (R_in_mapK AR2 b1 b2).
+Defined.
 
 Elpi derive.param2 ThreeTypes.
 Elpi derive.mymap ThreeTypes.
@@ -267,7 +264,7 @@ Elpi derive.injections ThreeTypes.
 Elpi derive.isK ThreeTypes.
 Elpi derive.mR ThreeTypes.
 Elpi derive.Rm ThreeTypes.
-Elpi derive.injectionsK ThreeTypes.
+Elpi derive.injK ThreeTypes.
 
 Elpi derive.param2 List.
 Elpi derive.mymap List.
@@ -276,4 +273,4 @@ Elpi derive.injections List.
 Elpi derive.isK List.
 Elpi derive.mR List.
 Elpi derive.Rm List.
-Elpi derive.injectionsK List.
+Elpi derive.injK List.
