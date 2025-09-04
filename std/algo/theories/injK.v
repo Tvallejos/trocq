@@ -32,7 +32,7 @@ Elpi Db derive.injectionsK.db lp:{{
   pred injectionsK-done o:term. 
 }}.
 
-Elpi Command derive.injectionsK.
+Elpi Command derive.injK.
 Elpi Accumulate File derive_hook.
 Elpi Accumulate File algo_utils.
 Elpi Accumulate Db derive.injectionsK.db.
