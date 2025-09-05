@@ -69,9 +69,8 @@ Proof.
 refine (fun w1 w2 wR=> _).
 refine (Wrap_R_ind Wrap_Pred _ w1 w2 wR).
 - refine (fun u1 u2 uR => _). 
-simpl.
-refine (@eq_ind_r _ (Unit_Rm u1 u2 uR) (fun t=> KWrap1_R u1 u2 (Unit_mR u1 u2 t) = KWrap1_R u1 u2 uR) _ _ (Wrap_injK11 (Unit_mymap u1) u2 (Unit_Rm u1 u2 uR))).
-refine (@eq_ind_r _ uR (fun t => KWrap1_R u1 u2 t = KWrap1_R u1 u2 uR) _ _ (Unit_mRRmK u1 u2 uR)).
+refine (@eq_ind _ _ (fun t=> KWrap1_R _ _ (Unit_mR u1 u2 t) = KWrap1_R u1 u2 uR) _ _ (Wrap_injK11 (Unit_mymap u1) u2 (Unit_Rm u1 u2 uR))^).
+refine (@eq_ind _ uR (fun t => KWrap1_R u1 u2 t = KWrap1_R u1 u2 uR) _ _ (Unit_mRRmK u1 u2 uR)^).
 exact (@eq_refl (Wrap_R (KWrap1 u1) (KWrap1 u2)) (KWrap1_R u1 u2 uR)).
 Defined.
 
@@ -81,18 +80,25 @@ Proof.
 refine (fun w1 w2 wR=> _).
 refine (Wrap_R_ind Wrap_Pred _ w1 w2 wR).
 - refine (fun u1 u2 uR => _).
+unfold Wrap_mR.
+unfold Wrap_Rm.
+unfold Wrap_R_ind.
+simpl.
+cbv.
 refine (match 
 (@eq_sym _ _ _ (Wrap_injK11 (Unit_mymap u1) u2 (Unit_Rm u1 u2 uR))) 
 (* (Wrap_injK11 (Unit_mymap u1) u2 (Unit_Rm u1 u2 uR))^ *)
-in _ = t 
-return KWrap1_R u1 u2 (Unit_mR u1 u2 t) = KWrap1_R u1 u2 uR
+(* in _ = t 
+return KWrap1_R u1 u2 (Unit_mR u1 u2 t) = KWrap1_R u1 u2 uR *)
 with eq_refl => _ end
 ).
+Show Proof.
 
 refine (match (Unit_mRRmK u1 u2 uR)^ in _ = t 
-return KWrap1_R u1 u2 t = KWrap1_R u1 u2 uR
+(* return KWrap1_R u1 u2 t = KWrap1_R u1 u2 uR *)
 with eq_refl => eq_refl end
 ).
+Show Proof.
 Defined.
 
 Elpi derive.param2 WrapMore.
@@ -114,10 +120,22 @@ refine (fun w1 w2 wR => _).
 refine (WrapMore_R_ind WrapMore_Pred _ _ _ w1 w2 wR).
 - refine (fun u1 u2 uR => _).
   refine (fun b1 b2 bR => _).
-  refine (match (WrapMore_injK11 (Unit_mymap u1) u2 (Unit_Rm _ _ uR) (Bool_mymap b1) b2 (Bool_Rm _ _ bR))^ in _ = t 
+  unfold WrapMore_mR.
+  refine (match (WrapMore_injK11 (Unit_mymap u1) u2 (Unit_Rm _ _ uR) (Bool_mymap b1) b2 (Bool_Rm _ _ bR))^ 
+  (* in _ = t 
   return 
-KWrap_R u1 u2 (Unit_mR u1 u2 t) b1 b2
+KWrap_R u1 u2 (Unit_mR u1 u2 (Unit_Rm u1 u2 uR)) b1 b2
 (Bool_mR b1 b2
+(WrapMore_injections12 (Unit_mymap u1) u2
+(Bool_mymap b1) b2
+(WrapMore_Rm (KWrap u1 b1) (KWrap u2 b2)
+(KWrap_R u1 u2 uR b1 b2 bR)))) =
+KWrap_R u1 u2 uR b1 b2 bR
+ *)
+
+(* KWrap_R u1 u2 (Unit_mR u1 u2 t) b1 b2 _ = 
+_ *)
+(* (Bool_mR b1 b2
 (WrapMore_injections12
 (Unit_mymap u1) u2 (Bool_mymap b1)
 b2
@@ -128,8 +146,10 @@ b2
 bcongr.eq_f Bool WrapMore
 [eta KWrap u2] (Bool_mymap b1) b2
 (Bool_Rm b1 b2 bR)))) =
-KWrap_R u1 u2 uR b1 b2 bR 
+KWrap_R u1 u2 uR b1 b2 bR  *)
 with eq_refl => _ end).
+
+
   refine (match (Unit_mRRmK _ _ uR)^ in _ = t return 
   KWrap_R u1 u2 t b1 b2
 (Bool_mR b1 b2
@@ -148,7 +168,6 @@ with eq_refl => _  end).
 set RWe1 := (WrapMore_injK12 (Unit_mymap u1) u2 (Unit_Rm _ _ uR) (Bool_mymap b1) b2 (Bool_Rm _ _ bR))^.
 set eqf1 := bcongr.eq_f _ _ _ _ _ _.
 set eqf2 := bcongr.eq_f _ _ _ _ _ _.
-
 set T := WrapMore_injections12 (Unit_mymap u1) u2 (Bool_mymap b1) b2
 (bcongr.eq_f Unit WrapMore (KWrap^~ (Bool_mymap b1)) (Unit_mymap u1) u2
 (Unit_Rm u1 u2 uR) @
@@ -253,9 +272,22 @@ refine (fun A3 A4 AR2=> _).
 refine (fun p1 p2 pR=> Prod_R_ind A1 A2 AR A3 A4 AR2 (Prod_Pred A1 A2 AR A3 A4 AR2) _ p1 p2 pR).
 refine (fun a1 a2 aR=> _).
 refine (fun b1 b2 bR=> _).
+unfold Prod_mR.
+Check PR.
 simpl.
 by rewrite Prod_injK11 Prod_injK12 (R_in_mapK AR a1 a2 aR) (R_in_mapK AR2 b1 b2).
 Defined.
+
+Elpi derive.param2 Mix.
+(* Fail Elpi derive.mymap Mix. 
+TODO: fix universe issue
+*)
+Elpi derive.projK Mix.
+Elpi derive.injections Mix.
+Elpi derive.isK Mix.
+Elpi derive.mR Mix.
+Elpi derive.Rm Mix.
+Elpi derive.injK Mix.
 
 Elpi derive.param2 ThreeTypes.
 Elpi derive.mymap ThreeTypes.
