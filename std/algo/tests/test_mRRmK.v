@@ -62,7 +62,7 @@ Elpi derive.isK Nat.
 Elpi derive.mR Nat.
 Elpi derive.Rm Nat.
 Elpi derive.injK Nat.
-Fail Elpi derive.mRRmK Nat.
+Elpi derive.mRRmK Nat.
 
 Elpi derive.param2 Box.
 Elpi derive.mymap Box.
