@@ -202,7 +202,6 @@ Elpi derive.isK Nat.
 Elpi derive.mR Nat.
 Elpi derive.Rm Nat.
 Elpi derive.injK Nat.
-
 Notation Nat_Pred := (fun n1 n2 nR => Nat_mR n1 n2 (Nat_Rm n1 n2 nR) = nR) (only parsing).
 
 Definition Nat_mRRmK : 
@@ -214,8 +213,6 @@ refine (fun n1 n2 nR => _).
 refine (Nat_R_ind Nat_Pred _ _ n1 n2 nR).
 - exact eq_refl.
 - refine (fun n1' n2' nR' Hrec=> _ ).
-refine (eq_ind _ _ (fun (t : projS'1 n1' (S' n1') = projS'1 n2' (S' n2'))  => S'_R n1' n2' (Nat_mR n1' n2' t) = S'_R n1' n2' nR') _ _ (Nat_injK21 n1' n2' _)).
-(* cbv. *)
 by rewrite Nat_injK21 f.
 Defined.
 
