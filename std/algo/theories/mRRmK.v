@@ -51,4 +51,3 @@ Elpi Accumulate lp:{{
   pred usage.
   usage :- coq.error "Usage: derive.mRRmK <object name>".
 }}. 
-
