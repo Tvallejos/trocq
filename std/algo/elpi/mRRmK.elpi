@@ -1,13 +1,13 @@
 shorten derive.common-algo.{mk-mR-type-mRRmK}.
-shorten derive.algo-utils.{mk-chain, for-K-get-KI}.
+shorten derive.algo-utils.{mk-chain, for-K-get-KI,type-of-args}.
 
 namespace derive.mRRmK {
 
-pred collect-args i:int, i:list term, o:list term, o:list term.
-collect-args 0 _ [] [].
-collect-args N [A1, A2| L] [A1|A1s] [A2|A2s] :-
+pred collect-ma1-a2 i:int, i:list term, o:list term, o:list term.
+collect-ma1-a2 0 _ [] [].
+collect-ma1-a2 N [A1, A2| L] [A1|A1s] [A2|A2s] :-
   M is N - 1,
-  collect-args M L A1s A2s.
+  collect-ma1-a2 M L A1s A2s.
 
 pred collect-paths i:int, i:term, o:list term. 
 collect-paths 0 _ [].
@@ -79,15 +79,15 @@ invert-eqs Eqs IEqs :-
               r = TMP
               ) IEqs.
 
-pred collect-things i:int, i:int, i:term, o:list term, o:list term, o:list term, o:list term. 
-collect-things TyArgsNo InitArgs MRRM TyArgsDest Args1 Args2 Paths :-
+pred collect-arguments i:int, i:int, i:term, o:list term, o:list term, o:list term, o:list term. 
+collect-arguments TyArgsNo InitArgs MRRM TyArgsDest Args1 Args2 Paths :-
   red-mR MRRM [] _KR Args12r, % KR a1 a2 ar b1 b2 br ...
   std.last Args12r LastMR, % each xr is xmR x1 x2 (inj Args12 Chain)
   coq.safe-dest-app LastMR _NMR Args,
-  std.last Args Inj, % we take the last inj
+  std.last Args Inj, % take the last inj
   coq.safe-dest-app Inj _Injin InjArgs,
-  std.split-at TyArgsNo InjArgs TyArgsDest ArgsChain, % we collect Type args
-  collect-args InitArgs ArgsChain Args1 Args2, % we collect mapped args1 and args2
+  std.split-at TyArgsNo InjArgs TyArgsDest ArgsChain, % collect Type args
+  collect-ma1-a2 InitArgs ArgsChain Args1 Args2, % collect mapped args1 and args2
   % Args1 is (map a1), (map b1)
   % Args2 is a2 b2 ...
   std.last InjArgs Rm,
@@ -112,9 +112,9 @@ drop-last L R :-
   std.take Take L R.
 
 % number of processed pats, total number of args, list of injK equations, list of patterns, list of resulting goals.
-pred pierce-goal-injK i:int, i:int, i:int i:term, i:list term, o:list term, o:list term.
-pierce-goal-injK _ N N _ [] [] [].
-pierce-goal-injK TyParamNo N InitArgs CurrentGoal [Eq|Eqs] [Pat|Pats] [NewGoal|Goals]:- !,
+pred pierce-goal-injK i:int, i:int, i:int i:term, i:list term, o:list term, o:term.
+pierce-goal-injK _ N N Goal [] [] Goal.
+pierce-goal-injK TyParamNo N InitArgs CurrentGoal [Eq|Eqs] [Pat|Pats] EndGoal:- !,
   M is N + 1,
   coq.safe-dest-app CurrentGoal EqGoal [EqGoalTy,GoalLHS,GoalRHS],
   coq.safe-dest-app GoalLHS KR Args,
@@ -132,12 +132,12 @@ pierce-goal-injK TyParamNo N InitArgs CurrentGoal [Eq|Eqs] [Pat|Pats] [NewGoal|G
   coq.typecheck Eq EqTy ok,
   coq.safe-dest-app EqTy _ [_,LHS,_],
   coq.mk-app Pat [LHS] NewGoal,
-  pierce-goal-injK TyParamNo M InitArgs NewGoal Eqs Pats Goals.
+  pierce-goal-injK TyParamNo M InitArgs NewGoal Eqs Pats EndGoal.
 
 % number of processed pats, total number of args, list of injK equations, list of patterns, list of resulting goals.
-pred pierce-goal-mRRmK i:int, i:int, i:int i:term, i:list term, o:list term, o:list term.
-pierce-goal-mRRmK _ N N _ [] [] [].
-pierce-goal-mRRmK TyParamNo N InitArgs CurrentGoal [Eq|Eqs] [Pat|Pats] [NewGoal|Goals]:- !,
+pred pierce-goal-mRRmK i:int, i:int, i:int i:term, i:list term, o:list term.
+pierce-goal-mRRmK _ N N _ [] [].
+pierce-goal-mRRmK TyParamNo N InitArgs CurrentGoal [Eq|Eqs] [Pat|Pats] :- !,
   M is N + 1,
   coq.safe-dest-app CurrentGoal EqGoal [EqGoalTy,GoalLHS,GoalRHS],
   coq.safe-dest-app GoalLHS KR Args,
@@ -151,7 +151,7 @@ pierce-goal-mRRmK TyParamNo N InitArgs CurrentGoal [Eq|Eqs] [Pat|Pats] [NewGoal|
   coq.typecheck Eq EqTy ok,
   coq.safe-dest-app EqTy _ [_,LHS,_],
   coq.mk-app Pat [LHS] NewGoal,
-  pierce-goal-mRRmK TyParamNo M InitArgs NewGoal Eqs Pats Goals.
+  pierce-goal-mRRmK TyParamNo M InitArgs NewGoal Eqs Pats.
   
 pred get-mRRmK-args i:list term, o:list (list term).
 get-mRRmK-args [] [].
@@ -166,35 +166,31 @@ mix-mRRmK-args [MRRMK| MRRMKs] [Args|Argss] [Eq| Eqs] :-
   mix-mRRmK-args MRRMKs Argss Eqs.
 
 % Ksource, Kdest, remaining args, number of type args, KRTy, Type of args Ksource, Type of args KDest, Goal,
-% todo remove last ArgNo
-% todo add KR to other cases
-pred process-args i:term, i:term, i:int, i:int, i:int, i:term, i:term, i:list term, i:list term, i:term, i:term, 
-i:int, i:list term, i:list term, i:list term, o:term.
+pred process-args i:term, i:term, i:int, i:int, i:int, i:term, i:term, i:term, i:term, 
+i:list term, i:list term, i:list term, o:term.
 % zero more arguments to process
-process-args Ksrc Kdest 0 0 TyArgsNo _ Goal TySrc TyDest ITyTy KR _ArgNo InjKs MRRMKs MRRMKEq R :- 
+process-args Ksrc Kdest 0 0 _ _ Goal _ KR _ _ _ R :- 
   coq.mk-app Goal [Ksrc, Kdest, KR] EqTy, 
-  whd EqTy [] HD [IRTy,MRRM,IR],
+  whd EqTy [] _ [IRTy,_,IR],
   R = {{ @eq_refl lp:IRTy lp:IR }}.
-process-args Ksrc Kdest 0 InitArgs TyArgsNo _ Goal TySrc TyDest ITyTy KR _ArgNo InjKs MRRMKs MRRMKEq R:- 
+process-args Ksrc Kdest 0 InitArgs TyArgsNo _ Goal _ KR InjKs _ MRRMKEq R:- 
   coq.mk-app Goal [Ksrc, Kdest, KR] EqTy, 
   %EqTy is the following type ImR i1 i2 (IRm i1 i2 ir) = ir for this specific branch
   whd EqTy [] HD [IRTy,MRRM,IR],
-  collect-things TyArgsNo InitArgs MRRM TyArgsDest Args1 Args2 Paths, %paths are all 
+  collect-arguments TyArgsNo InitArgs MRRM TyArgsDest Args1 Args2 Paths, %paths are all 
   feed-injKs InjKs TyArgsDest Args1 Args2 Paths Eqs,
   invert-eqs Eqs IEqs, 
   std.map MRRMKEq (x\ r\ sigma TMP\ coq.elaborate-skeleton x _ TMP ok, r = TMP) MRRMKElab,
   invert-eqs {std.rev MRRMKElab} IEqs2,
   End = {{ @eq_refl lp:IRTy lp:IR }},
   coq.mk-app HD [IRTy,{whd1 MRRM},IR] RGoal, % KR a1 a2 ar1[I_Rm] b1 b2 br[I_Rm]
-  coq.safe-dest-app ITyTy _ TyArgs,
-  std.length TyArgs TyParamNo,
-  pierce-goal-injK TyParamNo 0 InitArgs RGoal IEqs PatsInj GoalsInj,
-  pierce-goal-mRRmK TyParamNo 0 InitArgs {std.last GoalsInj} IEqs2 PatsMRRMK GoalsMRRMK,
+  pierce-goal-injK TyArgsNo 0 InitArgs RGoal IEqs PatsInj LastGoal,
+  pierce-goal-mRRmK TyArgsNo 0 InitArgs LastGoal IEqs2 PatsMRRMK,
   rewrite-with {std.append IEqs IEqs2} {std.append PatsInj PatsMRRMK} End R.
 
 % still have to process an arg
-process-args Ksrc Kdest N InitArgs TyArgsNo (prod AN1 A1Ty a1\ prod AN2 A2Ty a2\ prod ARN (ARTy a1 a2) ar\ (Bo a1 a2 ar)) Goal TySrc TyDest ITyTy KR
-             ArgNo InjKs [MRRMKSkel|MRRMKs] MRRMKEqs (fun AN1 A1Ty a1\ fun AN2 A2Ty a2\ fun ARN (ARTy a1 a2) ar\ (RF a1 a2 ar)):- 
+process-args Ksrc Kdest N InitArgs TyArgsNo (prod AN1 A1Ty a1\ prod AN2 A2Ty a2\ prod ARN (ARTy a1 a2) ar\ (Bo a1 a2 ar)) Goal ITyTy KR
+             InjKs [MRRMKSkel|MRRMKs] MRRMKEqs (fun AN1 A1Ty a1\ fun AN2 A2Ty a2\ fun ARN (ARTy a1 a2) ar\ (RF a1 a2 ar)):- 
   M is N - 1,
   @pi-decl AN1 A1Ty a1\
   @pi-decl AN2 A2Ty a2\
@@ -204,7 +200,7 @@ process-args Ksrc Kdest N InitArgs TyArgsNo (prod AN1 A1Ty a1\ prod AN2 A2Ty a2\
     coq.mk-app KR [a1,a2,ar] (NewKR a1 a2 ar),
     coq.mk-app MRRMKSkel [a1,a2,ar] (MRRMK a1 a2 ar),
     (ar-db a2 a1 ar ==>
-    process-args (NewKS a1) (NewKD a2) M InitArgs TyArgsNo (Bo a1 a2 ar) Goal TySrc TyDest ITyTy (NewKR a1 a2 ar) ArgNo InjKs MRRMKs [(MRRMK a1 a2 ar)|MRRMKEqs] (R a1 a2 ar)),
+    process-args (NewKS a1) (NewKD a2) M InitArgs TyArgsNo (Bo a1 a2 ar) Goal ITyTy (NewKR a1 a2 ar) InjKs MRRMKs [(MRRMK a1 a2 ar)|MRRMKEqs] (R a1 a2 ar)),
     % if the type of the argument is an instance of the inductive type add an induction hypothesis
     whd ITyTy _ Ind _,
     whd A2Ty _ IndD _,
@@ -212,15 +208,6 @@ process-args Ksrc Kdest N InitArgs TyArgsNo (prod AN1 A1Ty a1\ prod AN2 A2Ty a2\
        (coq.mk-app Goal [a1, a2, ar] (EqTy a1 a2 ar),
         (RF a1 a2 ar) = fun `e` (EqTy a1 a2 ar) e\ (R a1 a2 ar))
         (RF = R).
-
-% todo: move to utils
-% todo: document
-pred type-of-args i:term, i:int, o:list term, o:list term. 
-type-of-args _ 0 [] [].
-type-of-args (prod _AN1 ATy1 a1\ prod _AN2 ATy2 a2\ prod _ _ ar\ (Bo a1 a2 ar)) N [ATy1| SR] [ATy2 | DR] :-
-  M is N - 1,
-  pi a1 a2 ar\ 
-   type-of-args (Bo a1 a2 ar) M SR DR.
 
 pred feed-mRRmK-type i:list term, i:term, o:term.
 feed-mRRmK-type [] T T.
@@ -239,42 +226,35 @@ find-mRRmK [Ty|Tys] IndTy [MRRMK|MRRMKs] :-
     (feed-mRRmK-type TyArgs MRRMKS MRRMK),
   find-mRRmK Tys IndTy MRRMKs.
 
-% todo: perhaps unify with Rm
 % invariant: all type arguments were already processed. 
 % Constructor src, Constructor dest, Constructor dest Type, No of Arguments to process, 
 % constructorR Type, type of i2, something of type : i1 i2 iR => goal. 
 % Argno, InjKs
-% todo remove argno
-pred mkBranch i:term, i:term, i:int, i:term, i:term, i:term, i:term, i:int, i:list term, o:term.
-mkBranch KS KD N KTyR ITyTy Goal KR ArgNo InjKs Eq:-
-  type-of-args KTyR N SrcArgs DestArgs,
+pred mkBranch i:term, i:term, i:int, i:term, i:term, i:term, i:term, i:list term, o:term.
+mkBranch KS KD N KTyR ITyTy Goal KR InjKs Eq:-
+  type-of-args KTyR N _ DestArgs,
   whd ITyTy [] Hd TyArgs,
   find-mRRmK DestArgs Hd MRRMKS,
   % for every type dest add mRRmK to a list. 
-  process-args KS KD N N {std.length TyArgs} KTyR Goal SrcArgs DestArgs ITyTy KR ArgNo InjKs MRRMKS [] Eq.
+  process-args KS KD N N {std.length TyArgs} KTyR Goal ITyTy KR InjKs MRRMKS [] Eq.
 
-
-
-% todo perhaps unify with Rm mkBranches
 pred mkBranches i:list term, i:list term, i:list term, i:list term, i:term, i:term, 
-i:list term, i:list int, i:list (list term), o:list term.
-mkBranches [] [] [] [] _ _ [] [] [] [].
-mkBranches [KS|KsS] [KD|KsD] [KTy|KTys] [KTyR|KTyRs] ITyTy Goal [KR|KRs] [ArgNo|ArgsNos] [InjKs|InjKss] [R|Rs] :-
-  mkBranch KS KD {coq.count-prods KTy} KTyR ITyTy Goal KR ArgNo InjKs R,
-  mkBranches KsS KsD KTys KTyRs ITyTy Goal KRs ArgsNos InjKss Rs.
+i:list term, i:list (list term), o:list term.
+mkBranches [] [] [] [] _ _ [] [] [].
+mkBranches [KS|KsS] [KD|KsD] [KTy|KTys] [KTyR|KTyRs] ITyTy Goal [KR|KRs] [InjKs|InjKss] [R|Rs] :-
+  mkBranch KS KD {coq.count-prods KTy} KTyR ITyTy Goal KR InjKs R,
+  mkBranches KsS KsD KTys KTyRs ITyTy Goal KRs InjKss Rs.
 
 pred for-K-get-injKs i:int, i:list constructor, i:list term, o: list int, o:list (list term).
 for-K-get-injKs TyParamNo KNs KTys ArgsNos InjKss :-
   F = (grk\ i\ p\ injectionsK-db (global (indc grk)) i p),
   for-K-get-KI TyParamNo KNs KTys F ArgsNos InjKss.
 
-% todo: perhaps unify with implement-Rm
-% todo add KRs to other cases
-pred implement-mRRmK i:int, i:int, i:term, i:list term, i:list term, i:list term, i:list term, i:term, i:term, i:list term, i: list int, i:list (list term), o:term.
+pred implement-mRRmK i:int, i:term, i:list term, i:list term, i:list term, i:list term, i:term, i:term, i:list term, i:list (list term), o:term.
 % Pred comes with Type parameters applied 
 % RInd comes with Type parameters applied 
 % mRRmK
-implement-mRRmK 0 _TyParamNo (prod IN1 ITy1 i1\ prod IN2 ITy2 i2\ prod ARN (ARTy i1 i2) ar\ (Bo i1 i2 ar)) KsS KsD KTys KTyRs Pred RInd KRs ArgsNos InjKss
+implement-mRRmK 0 (prod IN1 ITy1 i1\ prod IN2 ITy2 i2\ prod ARN (ARTy i1 i2) ar\ (Bo i1 i2 ar)) KsS KsD KTys KTyRs Pred RInd KRs InjKss
             (fix `f` 2 RT f\ fun IN1 ITy1 i1\ fun IN2 ITy2 i2\ fun ARN (ARTy i1 i2) ar\ (Re f i1 i2 ar)) :-
   coq.safe-dest-app ITy1 Ind _, 
   Ind = (global (indt GR)),
@@ -286,23 +266,20 @@ implement-mRRmK 0 _TyParamNo (prod IN1 ITy1 i1\ prod IN2 ITy2 i2\ prod ARN (ARTy
   @pi-decl IN2 ITy2 i2\
   @pi-decl ARN (ARTy i1 i2) ar\
     (mRRmK-db Ind f => 
-      mkBranches KsS KsD KTys KTyRs ITy2 Pred KRs ArgsNos InjKss (Brs f)),
+      mkBranches KsS KsD KTys KTyRs ITy2 Pred KRs InjKss (Brs f)),
       std.append (Brs f) [i1,i2,ar] (IndArgs f i1 i2 ar),
       coq.mk-app RIndP (IndArgs f i1 i2 ar) (R f i1 i2 ar),
       coq.elaborate-skeleton (R f i1 i2 ar) _ (Re f i1 i2 ar) ok.
-%       mkBranches KsS KsD KTys KTyRs ITy2 Pred (Brs f)),
-%     std.append (Brs f) [i1,i2,ar] (IndArgs f i1 i2 ar),
-%     coq.mk-app RIndP (IndArgs f i1 i2 ar) (R f i1 i2 ar).
-implement-mRRmK 0 _TyParamNo (prod IN1 ITy1 i1\ prod IN2 ITy2 i2\ prod ARN (ARTy i1 i2) ir\ (EQ i1 i2 ir)) KsS KsD KTys KTyRs Pred RInd KRs ArgsNos InjKss
+implement-mRRmK 0 (prod IN1 ITy1 i1\ prod IN2 ITy2 i2\ prod ARN (ARTy i1 i2) _) KsS KsD KTys KTyRs Pred RInd KRs InjKss
             (fun IN1 ITy1 i1\ fun IN2 ITy2 i2\ fun ARN (ARTy i1 i2) ar\ (R i1 i2 ar)) :-
   coq.mk-app RInd [Pred] RIndP,
   @pi-decl IN1 ITy1 i1\
   @pi-decl IN2 ITy2 i2\
   @pi-decl ARN (ARTy i1 i2) ar\
-    mkBranches KsS KsD KTys KTyRs ITy2 Pred KRs ArgsNos InjKss Brs,
+    mkBranches KsS KsD KTys KTyRs ITy2 Pred KRs InjKss Brs,
     std.append Brs [i1,i2,ar] (IndArgs i1 i2 ar),
     coq.mk-app RIndP (IndArgs i1 i2 ar) (R i1 i2 ar).
-implement-mRRmK N TyParamNo (prod AN1 ATy1 a1\ prod AN2 ATy2 a2\ prod ARN (ARTy a1 a2) ar\ (Bo a1 a2 ar)) KsS KsD KTys KTyRs Pred RInd KRs ArgNos InjKss
+implement-mRRmK N (prod AN1 ATy1 a1\ prod AN2 ATy2 a2\ prod ARN (ARTy a1 a2) ar\ (Bo a1 a2 ar)) KsS KsD KTys KTyRs Pred RInd KRs InjKss
             (fun AN1 ATy1 a1\ fun AN2 ATy2 a2\ fun ARN (ARTy a1 a2) ar\ (R a1 a2 ar)) :-
   M is N - 1,
   @pi-decl AN1 ATy1 a1\ %A1 : Type
@@ -321,15 +298,13 @@ implement-mRRmK N TyParamNo (prod AN1 ATy1 a1\ prod AN2 ATy2 a2\ prod ARN (ARTy 
     std.map KTys (x\ r\ sigma TMP\ coq.subst-prod [a2] x TMP, r = TMP) (NewKTys a2),
     std.map KTyRs (x\ r\ sigma TMP1\ coq.subst-prod [a1,a2,(RelAR a1 a2 ar)] x TMP1, r = TMP1) (NewKTyRs a1 a2 ar),
     std.map KRs (x\ r\ sigma TMP\ coq.mk-app x [a1,a2,(RelAR a1 a2 ar)] TMP, r = TMP) (NewKRs a1 a2 ar),
-    coq.elaborate-skeleton (NewRIndSkel a1 a2 ar) _ (NewRInd a1 a2 ar) ok,
 
     MRRMK = {{ @Trocq.Hierarchy.R_in_mapK }},
     coq.mk-app MRRMK [a1, a2, ar] (MRRMKS a1 a2 ar),
     coq.typecheck (MRRMKS a1 a2 ar) _ ok,
-    % coq.elaborate-skeleton (RMS a1 a2 ar) _ (RM a1 a2 ar) ok,
     ar-db a1 a2 ar ==>
     mRRmK-db a2 (MRRMKS a1 a2 ar) ==>
-    implement-mRRmK M TyParamNo (Bo a1 a2 ar) (NewKsS a1) (NewKsD a2) (NewKTys a2) (NewKTyRs a1 a2 ar) (NewPred a1 a2 ar) (NewRInd a1 a2 ar) (NewKRs a1 a2 ar) ArgNos InjKss (R a1 a2 ar).
+    implement-mRRmK M (Bo a1 a2 ar) (NewKsS a1) (NewKsD a2) (NewKTys a2) (NewKTyRs a1 a2 ar) (NewPred a1 a2 ar) (NewRInd a1 a2 ar) (NewKRs a1 a2 ar) InjKss (R a1 a2 ar).
 
 
 
@@ -351,8 +326,8 @@ main GR Prefix Clauses :- std.do! [
   coq.env.indt GRR _ _ _ _ KNRs KTyRs,
   std.map KNs (x\ r\ r = (global (indc x))) Ks,
   std.map KNRs (x\ r\ r = (global (indc x))) KRs,
-  for-K-get-injKs TyParamNo KNs KTys ArgsNos InjKss,
-  implement-mRRmK TyParamNo TyParamNo MRTyE Ks Ks KTys KTyRs Pred (global RInd) KRs ArgsNos InjKss R,
+  for-K-get-injKs TyParamNo KNs KTys _ InjKss,
+  implement-mRRmK TyParamNo MRTyE Ks Ks KTys KTyRs Pred (global RInd) KRs InjKss R,
   coq.elaborate-skeleton R MRTyE Re ok,
   Name is Prefix ^ "mRRmK",
   coq.ensure-fresh-global-id Name FName,

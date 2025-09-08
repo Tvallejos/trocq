@@ -1,5 +1,5 @@
 shorten derive.common-algo.{mk-mR-type-Rm}.
-shorten derive.algo-utils.{mk-chain}.
+shorten derive.algo-utils.{mk-chain, type-of-args}.
 
 namespace derive.Rm {
 
@@ -62,14 +62,6 @@ process-args Ksrc Kdest N TyArgsNo (prod AN1 A1Ty a1\ prod AN2 A2Ty a2\ prod ARN
        (coq.mk-app Goal [a1, a2, ar] (EqTy a1 a2 ar),
         (RF a1 a2 ar) = fun `e` (EqTy a1 a2 ar) e\ (R a1 a2 ar))
         (RF = R).
-
-
-pred type-of-args i:term, i:int, o:list term, o:list term. 
-type-of-args _ 0 [] [].
-type-of-args (prod _AN1 ATy1 a1\ prod _AN2 ATy2 a2\ prod _ _ ar\ (Bo a1 a2 ar)) N [ATy1| SR] [ATy2 | DR] :-
-  M is N - 1,
-  pi a1 a2 ar\ 
-   type-of-args (Bo a1 a2 ar) M SR DR.
 
 % invariant: all type arguments were already processed. 
 % Constructor src, Constructor dest, Constructor dest Type, No of Arguments to process, 
