@@ -72,7 +72,7 @@ Elpi derive.isK Box.
 Elpi derive.mR Box.
 Elpi derive.Rm Box.
 Elpi derive.injK Box.
-Fail Elpi derive.mRRmK Box.
+Elpi derive.mRRmK Box.
 
 Elpi derive.param2 Option.
 Elpi derive.mymap Option.
@@ -82,7 +82,7 @@ Elpi derive.isK Option.
 Elpi derive.mR Option.
 Elpi derive.Rm Option.
 Elpi derive.injK Option.
-Fail Elpi derive.mRRmK Option.
+Elpi derive.mRRmK Option.
 
 Elpi derive.param2 Prod.
 Elpi derive.mymap Prod.
@@ -92,7 +92,7 @@ Elpi derive.isK Prod.
 Elpi derive.mR Prod.
 Elpi derive.Rm Prod.
 Elpi derive.injK Prod.
-Fail Elpi derive.mRRmK Prod.
+Elpi derive.mRRmK Prod.
 
 Elpi derive.param2 ThreeTypes.
 Elpi derive.mymap ThreeTypes.
@@ -102,7 +102,7 @@ Elpi derive.isK ThreeTypes.
 Elpi derive.mR ThreeTypes.
 Elpi derive.Rm ThreeTypes.
 Elpi derive.injK ThreeTypes.
-Fail Elpi derive.mRRmK ThreeTypes.
+Elpi derive.mRRmK ThreeTypes.
 
 Elpi derive.param2 List.
 Elpi derive.mymap List.
@@ -112,4 +112,4 @@ Elpi derive.isK List.
 Elpi derive.mR List.
 Elpi derive.Rm List.
 Elpi derive.injK List.
-Fail Elpi derive.mRRmK List.
+Elpi derive.mRRmK List.
