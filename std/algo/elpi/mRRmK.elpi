@@ -172,7 +172,9 @@ pred process-args i:term, i:term, i:int, i:int, i:int, i:term, i:term, i:list te
 i:int, i:list term, i:list term, o:term.
 % zero more arguments to process
 process-args Ksrc Kdest 0 0 TyArgsNo _ Goal TySrc TyDest ITyTy KR ArgNo InjKs MRRMKs R :- 
-  R = {{ eq_refl }}.
+  coq.mk-app Goal [Ksrc, Kdest, KR] EqTy, 
+  whd EqTy [] HD [IRTy,MRRM,IR],
+  R = {{ @eq_refl lp:IRTy lp:IR }}.
 process-args Ksrc Kdest 0 InitArgs TyArgsNo _ Goal TySrc TyDest ITyTy KR ArgNo InjKs MRRMKs R:- 
   coq.mk-app Goal [Ksrc, Kdest, KR] EqTy, 
   %EqTy is the following type ImR i1 i2 (IRm i1 i2 ir) = ir for this specific branch
@@ -259,18 +261,22 @@ for-K-get-injKs TyParamNo KNs KTys ArgsNos InjKss :-
 pred implement-mRRmK i:int, i:int, i:term, i:list term, i:list term, i:list term, i:list term, i:term, i:term, i:list term, i: list int, i:list (list term), o:term.
 % Pred comes with Type parameters applied 
 % RInd comes with Type parameters applied 
-% implement-mRRmK 0 _TyParamNo (prod IN1 ITy1 i1\ prod IN2 ITy2 i2\ prod ARN (ARTy i1 i2) ar\ (Bo i1 i2 ar)) KsS KsD KTys KTyRs Pred RInd
-%             (fix `f` 2 RT f\ fun IN1 ITy1 i1\ fun IN2 ITy2 i2\ fun ARN (ARTy i1 i2) ar\ (R f i1 i2 ar)) :-
-%   coq.safe-dest-app ITy1 Ind _, 
-%   Ind = (global (indt GR)),
-%   coq.env.recursive? GR, !,
-%   RT = (prod IN1 ITy1 i1\ prod IN2 ITy2 i2\ prod ARN (ARTy i1 i2) ar\ (Bo i1 i2 ar)),
-%   coq.mk-app RInd [Pred] RIndP,
-%   @pi-decl `f` RT f\
-%   @pi-decl IN1 ITy1 i1\
-%   @pi-decl IN2 ITy2 i2\
-%   @pi-decl ARN (ARTy i1 i2) ar\
-%     (rm-db Ind f => 
+implement-mRRmK 0 _TyParamNo (prod IN1 ITy1 i1\ prod IN2 ITy2 i2\ prod ARN (ARTy i1 i2) ar\ (Bo i1 i2 ar)) KsS KsD KTys KTyRs Pred RInd KRs ArgsNos InjKss
+            (fix `f` 2 RT f\ fun IN1 ITy1 i1\ fun IN2 ITy2 i2\ fun ARN (ARTy i1 i2) ar\ (Re f i1 i2 ar)) :-
+  coq.safe-dest-app ITy1 Ind _, 
+  Ind = (global (indt GR)),
+  coq.env.recursive? GR, !,
+  RT = (prod IN1 ITy1 i1\ prod IN2 ITy2 i2\ prod ARN (ARTy i1 i2) ar\ (Bo i1 i2 ar)),
+  coq.mk-app RInd [Pred] RIndP,
+  @pi-decl `f` RT f\
+  @pi-decl IN1 ITy1 i1\
+  @pi-decl IN2 ITy2 i2\
+  @pi-decl ARN (ARTy i1 i2) ar\
+    (mRRmK-db Ind f => 
+      mkBranches KsS KsD KTys KTyRs ITy2 Pred KRs ArgsNos InjKss (Brs f)),
+      std.append (Brs f) [i1,i2,ar] (IndArgs f i1 i2 ar),
+      coq.mk-app RIndP (IndArgs f i1 i2 ar) (R f i1 i2 ar),
+      coq.elaborate-skeleton (R f i1 i2 ar) _ (Re f i1 i2 ar) ok.
 %       mkBranches KsS KsD KTys KTyRs ITy2 Pred (Brs f)),
 %     std.append (Brs f) [i1,i2,ar] (IndArgs f i1 i2 ar),
 %     coq.mk-app RIndP (IndArgs f i1 i2 ar) (R f i1 i2 ar).
@@ -333,6 +339,8 @@ main GR Prefix Clauses :- std.do! [
   implement-mRRmK TyParamNo TyParamNo MRTyE Ks Ks KTys KTyRs Pred (global RInd) KRs ArgsNos InjKss R,
   % coq.say "Implemented mRRmK " R,
   coq.elaborate-skeleton R MRTyE Re E,
+  coq.say "Type is " MRTyE, 
+  coq.say "Term is " Re,
   coq.say "Erroring mRRmK E" E,
   Name is Prefix ^ "mRRmK",
   coq.ensure-fresh-global-id Name FName,
