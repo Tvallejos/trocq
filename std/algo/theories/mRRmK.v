@@ -1,13 +1,13 @@
 From elpi.apps.derive.elpi Extra Dependency "derive_hook.elpi" as derive_hook.
 From Trocq Extra Dependency "algo/elpi/mRRmK.elpi" as mRRmK.
-From Trocq Require Import injK mR Rm.
 From Trocq Extra Dependency "algo/elpi/common_algo.elpi" as common.
 From Trocq Extra Dependency "algo/elpi/utils.elpi" as algo_utils.
+From Trocq Require Export mymap injK mR Rm.
 
 From elpi Require Import elpi.
-From elpi.apps Require Import derive.param2.
+From elpi.apps Require Export derive.param2.
 (* From elpi.apps Require Import derive.bcongr. for eq_f register  *)
-(* From Trocq.Algo Require Import mymap. *)
+(* From Trocq Require Import mymap. *)
 (* From elpi.apps Require Import derive.induction. *)
 From Trocq Require Import Hierarchy.
 (* From Trocq Require Import HoTT_additions Hierarchy. *)
@@ -21,7 +21,7 @@ Elpi Db derive.mRRmK.db lp:{{
   pred mRRmK-db i:term, o:term.
 
   % [mRRmK-done T] mean T was already derived
-  pred mRRmK-done o:term.
+  pred mRRmK-done o:inductive.
 }}.
 
 Elpi Command derive.mRRmK.
@@ -51,3 +51,22 @@ Elpi Accumulate lp:{{
   pred usage.
   usage :- coq.error "Usage: derive.mRRmK <object name>".
 }}. 
+
+
+
+(* hook into derive
+Elpi Accumulate derive Db derive.mRRmK.db.
+Elpi Accumulate derive File common.
+Elpi Accumulate derive File algo_utils.
+Elpi Accumulate derive File mRRmK.
+
+Elpi Accumulate derive lp:{{
+
+dep1 "mRRmK" "param2".
+dep1 "mRRmK" "mymap".
+dep1 "mRRmK" "injK".
+dep1 "mRRmK" "mR".
+dep1 "mRRmK" "Rm".
+derivation (indt T) Prefix ff (derive "mRRmK" (derive.mRRmK.main T Prefix) (mRRmK-done T)).
+
+}}. *)

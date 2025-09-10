@@ -3,7 +3,6 @@ From Trocq Require Import coverage.
 From Trocq Require Import Hierarchy.
 Unset Uniform Inductive Parameters.
 
-
 Elpi derive.param2 False.
 Elpi derive.mymap False.
 Elpi derive.projK False.

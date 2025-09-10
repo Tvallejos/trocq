@@ -104,7 +104,7 @@ pred for-K-get-projectors i:int, i:list constructor, i:list term, o: list int, o
 for-K-get-projectors TyParamNo KNs KTys ArgsNos PJss :-
   for-K-get-KI TyParamNo KNs KTys (grk\ i\ p\ projK-db grk i p) ArgsNos PJss.
 
-pred main i:inductive, i:string, o:list prop.
+func main inductive, string -> list prop.
 main GR Prefix Clauses :- std.do! [
   Name is Prefix ^ "injections",
   coq.ensure-fresh-global-id Name FName,
@@ -116,7 +116,7 @@ main GR Prefix Clauses :- std.do! [
   Register = (k\j\c\ (injections-db (global (indc k)) j (global (const c)))),
   name-ijs FName 1 GR KNs Injss Register Clausess,
   std.flatten Clausess Clauses,
-  ClausesFin = [injections-done (global (indt GR)) | Clauses], %[injections-done GR, injections GR (const C)],
+  ClausesFin = [injections-done GR | Clauses], %[injections-done GR, injections GR (const C)],
   std.forall ClausesFin (x\
     coq.elpi.accumulate _ "derive.injections.db" (clause _ _ x)
   ),

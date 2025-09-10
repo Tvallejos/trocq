@@ -131,16 +131,18 @@ implement-Rm N TyParamNo (prod AN1 ATy1 a1\ prod AN2 ATy2 a2\ prod ARN (ARTy a1 
     implement-Rm M TyParamNo (Bo a1 a2 ar) (NewKsS a1) (NewKsD a2) (NewKTys a2) (NewKTyRs a1 a2 ar) (NewPred a1 a2 ar) (NewRInd a1 a2 ar) (R a1 a2 ar).
 
 
-pred main i:inductive, i:string, o:list prop.
+func main inductive, string -> list prop.
 main GR Prefix Clauses :- std.do! [
 
   coq.env.indt GR _ TyParamNo _ _ KNs KTys,
   Ind = (global (indt GR)),
-  param Ind Ind TR,
+  std.assert! (param Ind Ind TR) "derive.Rm: use derive.param2 before",
+  % param Ind Ind TR,
   coq.typecheck TR TRTy _,
-  mymap-def Ind IndMap,
+  % mymap-def Ind IndMap,
+  std.assert! (mymap-def Ind IndMap) "derive.Rm: use derive.mymap before",
   mk-mR-type-Rm TyParamNo TRTy IndMap {{ Type }} TR MRTy,
-  coq.elaborate-skeleton MRTy _ MRTyE ok,
+  std.assert-ok! (coq.elaborate-skeleton MRTy _ MRTyE) "derive.Rm generates illtyped type",
   TR = global (indt GRR),
   coq.gref->id (indt GRR) Rname,
   RInductionName is Rname ^ "_ind",
@@ -149,12 +151,13 @@ main GR Prefix Clauses :- std.do! [
   coq.env.indt GRR _ _ _ _ _ KTyRs,
   std.map KNs (x\ r\ r = (global (indc x))) Ks,
   implement-Rm TyParamNo TyParamNo MRTyE Ks Ks KTys KTyRs Pred (global RInd) R,
-  coq.elaborate-skeleton R MRTyE Re ok,
+  % coq.elaborate-skeleton R MRTyE Re ok,
+  std.assert-ok! (coq.elaborate-skeleton R MRTyE Re) "derive.Rm generates illtyped term",
   Name is Prefix ^ "Rm",
   coq.ensure-fresh-global-id Name FName,
   coq.env.add-const FName Re MRTyE _ C,
   I = global (indt GR),
-  Clauses = [rm-done I, rm-db I (global (const C))],
+  Clauses = [rm-done GR, rm-db I (global (const C))],
   std.forall Clauses (x\
     coq.elpi.accumulate _ "derive.Rm.db" (clause _ _ x)
   ),

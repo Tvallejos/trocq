@@ -308,7 +308,7 @@ implement-mRRmK N (prod AN1 ATy1 a1\ prod AN2 ATy2 a2\ prod ARN (ARTy a1 a2) ar\
 
 
 
-pred main i:inductive, i:string, o:list prop.
+func main inductive, string -> list prop.
 main GR Prefix Clauses :- std.do! [
 
   coq.env.indt GR _ TyParamNo _ _ KNs KTys,
@@ -333,7 +333,7 @@ main GR Prefix Clauses :- std.do! [
   coq.ensure-fresh-global-id Name FName,
   coq.env.add-const FName Re MRTyE _ C,
   I = global (indt GR),
-  Clauses = [mRRmK-done I, (mRRmK-db I (global (const C))) ],
+  Clauses = [mRRmK-done GR, (mRRmK-db I (global (const C))) ],
   std.forall Clauses (x\
     coq.elpi.accumulate _ "derive.mRRmK.db" (clause _ _ x)
   ),
