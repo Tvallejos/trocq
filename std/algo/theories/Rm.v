@@ -8,9 +8,9 @@ From Trocq Require Export Hierarchy.
 
 From elpi.apps Require Export derive.param2.
 From elpi.apps Require Export derive.bcongr. (* for eq_f register *) 
-(* From Trocq Require Export mymap. *)
+From Trocq Require Export mymap.
 (* todo: the real dependency is mymap *)
-From Trocq Require Import mR. 
+(* From Trocq Require Import mR.  *)
 Unset Uniform Inductive Parameters. 
 Elpi Db derive.Rm.db lp:{{
   % [ar-db A1 A2 AR] returns the relation between a type A1 and A2.

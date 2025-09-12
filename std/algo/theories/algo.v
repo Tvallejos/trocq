@@ -68,6 +68,10 @@ derivation (indt T) Prefix ff (derive "Rm" (derive.Rm.main T Prefix) (rm-done T)
 
 }}.
 
+Elpi derive unit.
+Check unit_mR.
+Fail Check unit_Rm.
+
 (* injK hook into derive *)
 From Trocq Require Export injK.
 From Trocq Extra Dependency "algo/elpi/injK.elpi" as injK.
