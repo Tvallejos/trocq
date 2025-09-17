@@ -46,3 +46,5 @@ algo/theories/map4.v
 algo/tests/test_map4.v
 algo/theories/umap.v
 algo/tests/test_umap.v
+algo/theories/Rel40.v
+algo/tests/test_rel40.v
