@@ -73,7 +73,7 @@ mk-mR-type-priv 0 (prod IN1 ITyTy x\ prod IN2 ITyTy2 _) _ _ Rel 4 LRev MR-DB RM-
       MR-DB Ind MapInR,
       coq.mk-app MapInR {std.append L [x,y,(Rm x y iR)]} (MRRM x y iR),
       (R x y iR) = {{ @eq _ lp:{{MRRM x y iR}} lp:iR }}.
-mk-mR-type-priv 0 (prod IN1 ITyTy x\ prod IN2 ITyTy2 _) _ _ Rel 5 LRev MR-DB RM-DB
+mk-mR-type-priv 0 (prod IN1 ITyTy x\ prod IN2 ITyTy2 _) _ _ Rel 5 LRev _ _
              (prod IN1 ITyTy x\ prod IN2 ITyTy2 y\ (R x y)) :-
   std.rev LRev L,
   symm_tyargs L [] L2,
@@ -108,21 +108,18 @@ mk-mR-type-mR N T ML MR Rel RTy :-
   %     NewMR = y,
   %     coq.mk-app Rel {std.append L [x,y]} NewRel,
   %     mk-return NewML NewMR NewRel Swap ITyTy2 (R x y)) =>
-  mk-mR-type-priv N T ML MR Rel 1 [] Dummy Dummy RTy.
+  mk-mR-type-priv N T ML MR Rel 1 [] _ _ RTy.
 
 pred mk-mR-type-Rm i:int, i:term, i:term, i:term, i:term, o:term.
 mk-mR-type-Rm N T ML MR Rel R :-
-  mk-mR-type-priv N T ML MR Rel 2 [] Dummy Dummy R.
+  mk-mR-type-priv N T ML MR Rel 2 [] _ _ R.
 
 pred mk-mR-type-mRRmK i:int, i:term, i:term, i:term, i:term, i:(pred i:term, o:term)  , i: (pred i:term, o:term), o:term.
-% pred mk-mR-type-mRRmK i:int, i:term, i:term, i:term, i:term, i:(term -> term -> prop), i: (term -> term -> prop), o:term.
 mk-mR-type-mRRmK N T ML MR Rel MR-DB RM-DB R :-
   mk-mR-type-priv N T ML MR Rel 4 [] MR-DB RM-DB R.
 
-pred mk-mR-type-swap i:int, i:term, i:term, i:term, i:term, o:term.
-% pred mk-mR-type-mRRmK i:int, i:term, i:term, i:term, i:term, i:(term -> term -> prop), i: (term -> term -> prop), o:term.
-mk-mR-type-swap N T ML MR Rel R :-
-  % TODO: implement me!
-  mk-mR-type-priv N T ML MR Rel 5 [] MR-DB RM-DB R.
+pred mk-mR-type-swap i:int, i:term, i:term, o:term.
+mk-mR-type-swap N T Rel R :-
+  mk-mR-type-priv N T _ _ Rel 5 [] _ _ R.
 
 }
