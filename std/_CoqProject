@@ -30,6 +30,8 @@ generic/Trocq.v
 generic/Vernac.v
 
 algo/tests/coverage.v
+algo/theories/swap.v
+algo/tests/test_swap.v
 algo/theories/mymap.v
 algo/tests/test_mymap.v
 algo/theories/injection_lemmas.v
