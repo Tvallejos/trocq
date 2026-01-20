@@ -316,7 +316,7 @@ main GR Prefix Clauses :- std.do! [
   param Ind Ind TR,
   coq.typecheck TR TRTy _,
   mymap-def Ind IndMap,
-  mk-mR-type-mRRmK TyParamNo TRTy IndMap {{ Type }} TR mR-db rm-db MRTy,
+  mk-mR-type-mRRmK TyParamNo TRTy IndMap TR mR-db rm-db MRTy,
   coq.elaborate-skeleton MRTy _ MRTyE ok,
   TR = global (indt GRR),
   coq.gref->id (indt GRR) Rname,
