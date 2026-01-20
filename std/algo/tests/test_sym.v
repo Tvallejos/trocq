@@ -17,16 +17,14 @@ Elpi derive.sym Wrap.
 Elpi derive.param2 WrapMore.
 Elpi derive.sym WrapMore.
 
-Elpi derive.param2 nat.
-Elpi derive.sym nat.
+Elpi derive.param2 Nat.
+Elpi derive.sym Nat.
 
-Elpi derive.param2 option.
-Elpi Trace Browser.
-Elpi derive.sym option.
-Compute option_sym.
+Elpi derive.param2 Option.
+Elpi derive.sym Option.
 
-Elpi derive.param2 prod.
-Elpi derive.sym prod.
+Elpi derive.param2 Prod.
+Elpi derive.sym Prod.
 
-Elpi derive.param2 list.
-Elpi derive.sym list.
+Elpi derive.param2 List.
+Elpi derive.sym List.

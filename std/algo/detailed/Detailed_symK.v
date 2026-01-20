@@ -12,8 +12,8 @@ Unset Universe Minimization ToSet.
 Elpi derive.param2 Unit.
 Elpi derive.sym Unit.
 
-Definition Unit_symKPred := fun u1 u2 (uR : Unit_R u1 u2)=> Unit_sym _ _ (Unit_sym _ _ uR) = uR.
-Definition Unit_symK : forall u1 u2 (uR : Unit_R u1 u2), Unit_sym _ _ (Unit_sym _ _ uR) = uR.
+Definition Unit_symKPred := fun u1 u2 (uR : Unit_R u1 u2)=> Unit_sym u2 u1 (Unit_sym u1 u2 uR) = uR.
+Definition Unit_symK : forall u1 u2 (uR : Unit_R u1 u2), Unit_sym u2 u1 (Unit_sym u1 u2 uR) = uR.
 Proof.
 move=> u1 u2 uR.
 refine (Unit_R_ind Unit_symKPred _ u1 u2 uR).
@@ -23,8 +23,8 @@ Defined.
 Elpi derive.param2 Bool.
 Elpi derive.sym Bool.
 
-Notation Bool_symKPred := (fun b1 b2 (bR : Bool_R b1 b2)=> Bool_sym _ _ (Bool_sym _ _ bR) = bR).
-Definition Bool_symK : forall b1 b2 (bR : Bool_R b1 b2), Bool_sym _ _ (Bool_sym _ _ bR) = bR.
+Notation Bool_symKPred := (fun b1 b2 (bR : Bool_R b1 b2)=> Bool_sym b2 b1 (Bool_sym b1 b2 bR) = bR).
+Definition Bool_symK : forall b1 b2 (bR : Bool_R b1 b2), Bool_sym b2 b1 (Bool_sym b1 b2 bR) = bR.
 Proof.
 refine (fun b1 b2 bR=> Bool_R_ind Bool_symKPred _ _ b1 b2 bR).
 - exact: eq_refl.
@@ -34,8 +34,8 @@ Defined.
 Elpi derive.param2 Wrap.
 Elpi derive.sym Wrap.
 
-Notation Wrap_symKPred := (fun w1 w2 (wR : Wrap_R w1 w2) => Wrap_sym _ _ (Wrap_sym _ _ wR) = wR).
-Definition Wrap_symK : forall w1 w2 (wR : Wrap_R w1 w2), Wrap_sym _ _ (Wrap_sym _ _ wR) = wR.
+Notation Wrap_symKPred := (fun w1 w2 (wR : Wrap_R w1 w2) => Wrap_sym w2 w1 (Wrap_sym w1 w2 wR) = wR).
+Definition Wrap_symK : forall w1 w2 (wR : Wrap_R w1 w2), Wrap_sym w2 w1 (Wrap_sym w1 w2 wR) = wR.
 Proof.
 refine (fun w1 w2 wR=> Wrap_R_ind Wrap_symKPred _ w1 w2 wR).
 refine (fun u1 u2 uR=> _).
@@ -48,8 +48,8 @@ Defined.
 Elpi derive.param2 WrapMore.
 Elpi derive.sym WrapMore.
 
-Notation WrapMore_symKPred := (fun w1 w2 (wR : WrapMore_R w1 w2) => WrapMore_sym _ _ (WrapMore_sym _ _ wR) = wR).
-Definition WrapMore_symK : forall w1 w2 (wR : WrapMore_R w1 w2), WrapMore_sym _ _ (WrapMore_sym _ _ wR) = wR.
+Notation WrapMore_symKPred := (fun w1 w2 (wR : WrapMore_R w1 w2) => WrapMore_sym w2 w1 (WrapMore_sym w1 w2 wR) = wR).
+Definition WrapMore_symK : forall w1 w2 (wR : WrapMore_R w1 w2), WrapMore_sym w2 w1 (WrapMore_sym w1 w2 wR) = wR.
 Proof.
 refine (fun w1 w2 wR=> WrapMore_R_ind WrapMore_symKPred _ _ _ w1 w2 wR).
 - refine (fun u1 u2 uR=> _).
@@ -72,8 +72,8 @@ Defined.
 Elpi derive.param2 Nat.
 Elpi derive.sym Nat.
 
-Notation Nat_symKPred := (fun w1 w2 (wR : Nat_R w1 w2) => Nat_sym _ _ (Nat_sym _ _ wR) = wR).
-Definition Nat_symK : forall w1 w2 (wR : Nat_R w1 w2), Nat_sym _ _ (Nat_sym _ _ wR) = wR.
+Notation Nat_symKPred := (fun w1 w2 (wR : Nat_R w1 w2) => Nat_sym w2 w1 (Nat_sym w1 w2 wR) = wR).
+Definition Nat_symK : forall w1 w2 (wR : Nat_R w1 w2), Nat_sym w2 w1 (Nat_sym w1 w2 wR) = wR.
 Proof.
 refine (fun w1 w2 wR=> Nat_R_ind Nat_symKPred _ _ w1 w2 wR).
 exact: eq_refl.
@@ -83,14 +83,16 @@ rewrite IH.
 exact: eq_refl.
 Defined.
 
-Inductive Box (A : Type) : Type := B : A -> Box A.
-
 Elpi derive.param2 Box.
 Elpi derive.sym Box.
 
-Notation Box_symKPred := (fun A1 A2 (AR: A1 -> A2 -> Type) b1 b2 (bR : Box_R A1 A2 AR b1 b2) => Box_sym A2 A1 (sym_rel AR) b2 b1 (Box_sym A1 A2 AR b1 b2 bR) = bR).
+Notation Box_symKPred := (fun A1 A2 (AR: A1 -> A2 -> Type) 
+                              b1 b2 (bR : Box_R A1 A2 AR b1 b2) 
+                              => Box_sym A2 A1 (sym_rel AR) b2 b1 (Box_sym A1 A2 AR b1 b2 bR) = bR).
 Definition Box_symK :
-  forall A1 A2 (AR: A1 -> A2 -> Type) b1 b2 (bR : Box_R A1 A2 AR b1 b2), Box_sym A2 A1 (sym_rel AR) b2 b1 (Box_sym A1 A2 AR b1 b2 bR) = bR.
+  forall A1 A2 (AR: A1 -> A2 -> Type) 
+  b1 b2 (bR : Box_R A1 A2 AR b1 b2), 
+  Box_sym A2 A1 (sym_rel AR) b2 b1 (Box_sym A1 A2 AR b1 b2 bR) = bR.
 Proof.
 refine (fun A1 A2 AR=> _).
 refine (fun b1 b2 bR=> _).
