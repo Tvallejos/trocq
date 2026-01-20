@@ -1,6 +1,7 @@
-shorten derive.common-algo.{mk-mR-type-swap}.
 
-namespace derive.swap {
+shorten derive.common-algo.{mk-mR-type-sym}.
+
+namespace derive.sym {
 
 % [|K|], remaining args, number of type args, KRTy, Type of args Ksource, Type of args KDest, Goal,
 pred process-args i:term, i:int, i:int, i:term, i:term, i:term, o:term.
@@ -12,9 +13,9 @@ process-args KR N _TyArgsNo (prod AN1 A1Ty a1\ prod AN2 A2Ty a2\ prod ARN (ARTy 
   @pi-decl AN1 A1Ty a1\
   @pi-decl AN2 A2Ty a2\
   @pi-decl ARN (ARTy a1 a2) ar\
-    whd A1Ty _ A1Ind _, %TODO: fixme for inductives with type parameters, assemble swap
-    swap-db A1Ind SwapC,
-    coq.mk-app SwapC [a1,a2,ar] (RA a1 a2 ar), 
+    whd A1Ty _ A1Ind _, %TODO: fixme for inductives with type parameters, assemble sym
+    sym-db A1Ind SymC,
+    coq.mk-app SymC [a1,a2,ar] (RA a1 a2 ar), 
     coq.mk-app KR [a2,a1,(RA a1 a2 ar)] (NewKR a1 a2 ar),
     (param a2 a1 ar =!=>
     process-args (NewKR a1 a2 ar) M _ (Bo a1 a2 ar) Goal ITyTy (R a1 a2 ar)),
@@ -40,10 +41,10 @@ mkBranches [KR|KRs][KTy|KTys] [KTyR|KTyRs] ITyTy Goal [R|Rs] :-
   mkBranch KR {coq.count-prods KTy} KTyR ITyTy Goal R,
   mkBranches KRs KTys KTyRs ITyTy Goal Rs.
 
-pred implement-swap i:int, i:int, i:term, i:list term, i:list term, i:list term, i:term, i:term, o:term.
+pred implement-sym i:int, i:int, i:term, i:list term, i:list term, i:list term, i:term, i:term, o:term.
 % Pred comes with Type parameters applied 
 % RInd comes with Type parameters applied 
-implement-swap 0 _TyParamNo (prod IN1 ITy1 i1\ prod IN2 ITy2 i2\ prod ARN (ARTy i1 i2) ar\ (Bo i1 i2 ar)) KRs KTys KTyRs Pred RInd
+implement-sym 0 _TyParamNo (prod IN1 ITy1 i1\ prod IN2 ITy2 i2\ prod ARN (ARTy i1 i2) ar\ (Bo i1 i2 ar)) KRs KTys KTyRs Pred RInd
             (fix `f` 2 RT f\ fun IN1 ITy1 i1\ fun IN2 ITy2 i2\ fun ARN (ARTy i1 i2) ar\ (R f i1 i2 ar)) :-
   coq.safe-dest-app ITy1 Ind _, 
   Ind = (global (indt GR)),
@@ -54,11 +55,11 @@ implement-swap 0 _TyParamNo (prod IN1 ITy1 i1\ prod IN2 ITy2 i2\ prod ARN (ARTy 
   @pi-decl IN1 ITy1 i1\
   @pi-decl IN2 ITy2 i2\
   @pi-decl ARN (ARTy i1 i2) ar\
-    (swap-db Ind f => 
+    (sym-db Ind f => 
       mkBranches KRs KTys KTyRs ITy2 Pred (Brs f)),
     std.append (Brs f) [i1,i2,ar] (IndArgs f i1 i2 ar),
     coq.mk-app RIndP (IndArgs f i1 i2 ar) (R f i1 i2 ar).
-implement-swap 0 _TyParamNo (prod IN1 ITy1 i1\ prod IN2 ITy2 i2\ prod ARN (ARTy i1 i2) _) KRs KTys KTyRs Pred RInd
+implement-sym 0 _TyParamNo (prod IN1 ITy1 i1\ prod IN2 ITy2 i2\ prod ARN (ARTy i1 i2) _) KRs KTys KTyRs Pred RInd
             (fun IN1 ITy1 i1\ fun IN2 ITy2 i2\ fun ARN (ARTy i1 i2) ar\ (R i1 i2 ar)) :-
   coq.mk-app RInd [Pred] RIndP,
   @pi-decl IN1 ITy1 i1\
@@ -67,7 +68,7 @@ implement-swap 0 _TyParamNo (prod IN1 ITy1 i1\ prod IN2 ITy2 i2\ prod ARN (ARTy 
     mkBranches KRs KTys KTyRs ITy2 Pred Brs,
     std.append Brs [i1,i2,ar] (IndArgs i1 i2 ar),
     coq.mk-app RIndP (IndArgs i1 i2 ar) (R i1 i2 ar).
-implement-swap N TyParamNo (prod AN1 ATy1 a1\ prod AN2 ATy2 a2\ prod ARN (ARTy a1 a2) ar\ (Bo a1 a2 ar)) KRs KTys KTyRs Pred RInd
+implement-sym N TyParamNo (prod AN1 ATy1 a1\ prod AN2 ATy2 a2\ prod ARN (ARTy a1 a2) ar\ (Bo a1 a2 ar)) KRs KTys KTyRs Pred RInd
             (fun AN1 ATy1 a1\ fun AN2 ATy2 a2\ fun ARN (ARTy a1 a2) ar\ (R a1 a2 ar)) :-
   M is N - 1,
   @pi-decl AN1 ATy1 a1\ %A1 : Type
@@ -89,18 +90,18 @@ implement-swap N TyParamNo (prod AN1 ATy1 a1\ prod AN2 ATy2 a2\ prod ARN (ARTy a
     Sym = {{ @sym_rel }},
     coq.mk-app Sym [a1, a2, ar] (SymApp a1 a2 ar),
     (SymFun a1 a2 ar) = {{ fun (a1 : lp:{{a1}}) (a2 : lp:{{a2}}) (ar : lp:{{SymApp a1 a2 ar}})=> ar }},
-    swap-db a1 (SymFun a1 a2 ar) ==>
-    implement-swap M TyParamNo (Bo a1 a2 ar) (NewKRs a1 a2 ar) (NewKTys a2) (NewKTyRs a1 a2 ar) (NewPred a1 a2 ar) (NewRInd a1 a2 ar) (R a1 a2 ar).
+    sym-db a1 (SymFun a1 a2 ar) ==>
+    implement-sym M TyParamNo (Bo a1 a2 ar) (NewKRs a1 a2 ar) (NewKTys a2) (NewKTyRs a1 a2 ar) (NewPred a1 a2 ar) (NewRInd a1 a2 ar) (R a1 a2 ar).
 
 func main inductive, string -> list prop.
 main GR Prefix Clauses :- std.do! [
 
   coq.env.indt GR _ TyParamNo _ _ _ KTys,
   Ind = (global (indt GR)),
-  std.assert! (param Ind Ind TR) "derive.swap: use derive.param2 before",
+  std.assert! (param Ind Ind TR) "derive.sym: use derive.param2 before",
   coq.typecheck TR TRTy _,
-  mk-mR-type-swap TyParamNo TRTy TR MRTy,
-  std.assert-ok! (coq.elaborate-skeleton MRTy _ MRTyE) "derive.swap generates illtyped type",
+  mk-mR-type-sym TyParamNo TRTy TR MRTy,
+  std.assert-ok! (coq.elaborate-skeleton MRTy _ MRTyE) "derive.sym generates illtyped type",
   TR = global (indt GRR),
   coq.gref->id (indt GRR) Rname,
   RInductionName is Rname ^ "_rect",
@@ -108,15 +109,15 @@ main GR Prefix Clauses :- std.do! [
   coq.prod->fun MRTyE Pred,
   coq.env.indt GRR _ _ _ _ KRNs KTyRs,
   std.map KRNs (x\ r\ r = (global (indc x))) KRs,
-  implement-swap TyParamNo TyParamNo MRTyE KRs KTys KTyRs Pred (global RInd) R,
-  std.assert-ok! (coq.elaborate-skeleton R MRTyE Re) "derive.swap generates illtyped term",
-  Name is Prefix ^ "swap",
+  implement-sym TyParamNo TyParamNo MRTyE KRs KTys KTyRs Pred (global RInd) R,
+  std.assert-ok! (coq.elaborate-skeleton R MRTyE Re) "derive.sym generates illtyped term",
+  Name is Prefix ^ "sym",
   coq.ensure-fresh-global-id Name FName,
   coq.env.add-const FName Re MRTyE _ C,
   I = global (indt GR),
-  Clauses = [swap-done GR, swap-db I (global (const C))],
+  Clauses = [sym-done GR, sym-db I (global (const C))],
   std.forall Clauses (x\
-    coq.elpi.accumulate _ "derive.swap.db" (clause _ _ x)
+    coq.elpi.accumulate _ "derive.sym.db" (clause _ _ x)
   ),
 ].
 
