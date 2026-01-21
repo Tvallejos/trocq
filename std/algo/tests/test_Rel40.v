@@ -2,7 +2,7 @@ From Trocq Require Import map4 umap Rel40.
 From Trocq Require Import coverage.
 Unset Uniform Inductive Parameters.
 
-#[verbose] Elpi derive False.
+Elpi derive False.
 Check False_rel40 : Param40.Rel False False.
 
 Elpi derive Unit.
@@ -34,14 +34,3 @@ Check ThreeTypes_rel40 : forall A1 A2 AR UR B1 B2 BR BUR C1 C2 CR CUR,  Param40.
 
 Elpi derive List.
 Check List_rel40 : forall A1 A2 AR UR,  Param40.Rel (List A1) (List A2).
-
-From Stdlib Require Import String.
-
-Inductive term := 
-| tRel : nat -> term
-| tVar : string -> term 
-| tApp : term -> term -> term 
-| tLam : term -> term -> term.
-
-
-Elpi derive.param2 list.

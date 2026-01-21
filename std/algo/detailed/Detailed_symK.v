@@ -1,13 +1,22 @@
 From Coq Require Import ssreflect.
 From elpi.apps.derive Require Import derive derive.param2.
 Require Import Hierarchy.
+From Trocq Require Import HoTTNotations.
 From Trocq Require Import coverage sym.
 (* Require Import HoTT_additions Hierarchy. *)
 Unset Uniform Inductive Parameters.
 (* Unset Universe Polymorphism. *)
 Unset Universe Minimization ToSet.
 
-(* Definition Unit := unit. *)
+Elpi derive.param2 False.
+Elpi derive.sym False.
+
+Definition False_symKPred := fun u1 u2 (uR : False_R u1 u2)=> False_sym u2 u1 (False_sym u1 u2 uR) = uR.
+Definition False_symK : forall u1 u2 (uR : False_R u1 u2), False_sym u2 u1 (False_sym u1 u2 uR) = uR.
+Proof.
+move=> u1 u2 uR.
+refine (False_R_ind False_symKPred u1 u2 uR).
+Defined.
 
 Elpi derive.param2 Unit.
 Elpi derive.sym Unit.
@@ -41,7 +50,8 @@ refine (fun w1 w2 wR=> Wrap_R_ind Wrap_symKPred _ w1 w2 wR).
 refine (fun u1 u2 uR=> _).
 unfold Wrap_sym.
 unfold Wrap_R_rect.
-rewrite Unit_symK.
+refine ( @eq_ind _ _ (fun t => KWrap1_R u1 u2 t = KWrap1_R u1 u2 uR) _ _ (Unit_symK u1 u2 uR)^).
+(* rewrite Unit_symK. *)
 exact: eq_refl.
 Defined.
 
@@ -55,7 +65,11 @@ refine (fun w1 w2 wR=> WrapMore_R_ind WrapMore_symKPred _ _ _ w1 w2 wR).
 - refine (fun u1 u2 uR=> _).
   refine (fun b1 b2 bR=> _).
   cbn delta beta iota.
-  rewrite Unit_symK Bool_symK.
+  refine ( @eq_ind _ _ (fun t => KWrap_R u1 u2 t b1 b2
+(Bool_sym b2 b1 (Bool_sym b1 b2 bR)) = KWrap_R u1 u2 uR b1 b2 bR) _ _ (Unit_symK u1 u2 uR)^).
+  refine ( @eq_ind _ _ (fun t => KWrap_R u1 u2 uR b1 b2
+t = KWrap_R u1 u2 uR b1 b2 bR) _ _ (Bool_symK b1 b2 bR)^).
+  (* rewrite Unit_symK Bool_symK. *)
   exact: eq_refl.
 - refine (fun w1 w2 wR=> _).
   cbn delta beta iota.
@@ -73,13 +87,14 @@ Elpi derive.param2 Nat.
 Elpi derive.sym Nat.
 
 Notation Nat_symKPred := (fun w1 w2 (wR : Nat_R w1 w2) => Nat_sym w2 w1 (Nat_sym w1 w2 wR) = wR).
-Definition Nat_symK : forall w1 w2 (wR : Nat_R w1 w2), Nat_sym w2 w1 (Nat_sym w1 w2 wR) = wR.
+Fixpoint Nat_symK : forall w1 w2 (wR : Nat_R w1 w2), Nat_sym w2 w1 (Nat_sym w1 w2 wR) = wR.
 Proof.
 refine (fun w1 w2 wR=> Nat_R_ind Nat_symKPred _ _ w1 w2 wR).
 exact: eq_refl.
 refine (fun n1 n2 nR IH => _).
 cbn delta beta iota.
-rewrite IH.
+refine (@eq_ind _ _ (fun t => S'_R n1 n2 t = S'_R n1 n2 nR) _ _ (Nat_symK n1 n2 nR)^).
+(* rewrite IH. *)
 exact: eq_refl.
 Defined.
 
@@ -115,25 +130,10 @@ refine (fun b1 b2 bR=> _).
 refine (Option_R_ind A1 A2 AR (Option_symKPred A1 A2 AR) _ _ b1 b2 bR).
 - exact: eq_refl.
 - move=> a1 a2 ar.
+simpl.
 cbn delta beta iota.
+Check (@eq_refl ((sym_rel AR) a2 a1) ar).
 exact: eq_refl.
-Defined.
-
-Elpi derive.param2 List.
-Elpi derive.sym List.
-
-Notation List_symKPred := (fun A1 A2 (AR: A1 -> A2 -> Type) b1 b2 (bR : List_R A1 A2 AR b1 b2) => List_sym A2 A1 (sym_rel AR) b2 b1 (List_sym A1 A2 AR b1 b2 bR) = bR).
-Definition List_symK :
-  forall A1 A2 (AR: A1 -> A2 -> Type) b1 b2 (bR : List_R A1 A2 AR b1 b2), List_sym A2 A1 (sym_rel AR) b2 b1 (List_sym A1 A2 AR b1 b2 bR) = bR.
-Proof.
-refine (fun A1 A2 AR=> _).
-refine (fun b1 b2 bR=> _).
-refine (List_R_ind A1 A2 AR (List_symKPred A1 A2 AR) _ _ b1 b2 bR).
-- exact: eq_refl.
-- move=> a1 a2 ar l1 l2 lr IH.
-  cbn delta beta iota.
-  rewrite IH.
-  exact: eq_refl.
 Defined.
 
 Elpi derive.param2 Prod.
@@ -151,3 +151,21 @@ refine (Prod_R_ind A1 A2 AR B1 B2 BR (Prod_symKPred A1 A2 AR B1 B2 BR) _ b1 b2 b
 exact: eq_refl.
 Defined.
 
+Elpi derive.param2 List.
+Elpi derive.sym List.
+
+Notation List_symKPred := (fun A1 A2 (AR: A1 -> A2 -> Type) b1 b2 (bR : List_R A1 A2 AR b1 b2) => List_sym A2 A1 (sym_rel AR) b2 b1 (List_sym A1 A2 AR b1 b2 bR) = bR).
+Fixpoint List_symK :
+  forall A1 A2 (AR: A1 -> A2 -> Type) b1 b2 (bR : List_R A1 A2 AR b1 b2), List_sym A2 A1 (sym_rel AR) b2 b1 (List_sym A1 A2 AR b1 b2 bR) = bR.
+Proof.
+refine (fun A1 A2 AR=> _).
+refine (fun b1 b2 bR=> _).
+refine (List_R_ind A1 A2 AR (List_symKPred A1 A2 AR) _ _ b1 b2 bR).
+- exact: eq_refl.
+- move=> a1 a2 ar l1 l2 lr IH.
+  cbn delta beta iota.
+  refine (@eq_ind _ _ (fun t => Cons_R A1 A2 (sym_rel (sym_rel AR)) a1 a2 ar l1 l2 t =
+Cons_R A1 A2 AR a1 a2 ar l1 l2 lr) _ _ (List_symK A1 A2 AR l1 l2 lr)^).
+  (* rewrite IH. *)
+  exact: eq_refl.
+Defined.
