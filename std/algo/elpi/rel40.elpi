@@ -54,7 +54,6 @@ main GR Prefix Clauses :- std.do! [
   std.assert! (umap-db Ind UMapI) "derive.rel40: use derive.umap before",
   mk-rel40-type TyParamNo Arity Ind Rel40TySkel,
   std.assert-ok! (coq.elaborate-skeleton Rel40TySkel _ Rel40Ty) "derive.rel40 generates illtyped type",
-  coq.say "Type of Rel40" Rel40Ty,
   implement-rel40 TyParamNo Rel40Ty UMapI RRel40Skel,
   std.assert-ok! (coq.elaborate-skeleton RRel40Skel _ RRel40) "derive.umap generates illtyped term",
   NameRel is Prefix ^ "rel40",

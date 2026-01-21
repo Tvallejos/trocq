@@ -32,6 +32,8 @@ generic/Vernac.v
 algo/tests/coverage.v
 algo/theories/sym.v
 algo/tests/test_sym.v
+algo/theories/symK.v
+algo/tests/test_symK.v
 algo/theories/mymap.v
 algo/tests/test_mymap.v
 algo/theories/injection_lemmas.v

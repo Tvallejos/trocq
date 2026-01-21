@@ -93,7 +93,6 @@ mk-mR-type-priv 0 (prod IN1 ITyTy x\ prod IN2 ITyTy2 _) SymC _ Rel 6 LRev _ _
   coq.mk-app Rel {std.append L [x,y]} (RelTy x y),
   @pi-decl `IR` (RelTy x y) iR\ 
     % sigma NewML NewMR NewRel L\
-      whd ITyTy2 [] Ind _,
       coq.mk-app SymC {std.append L [x,y,iR]} (SymR x y iR),
       coq.mk-app SymC {std.append L2 [y,x,(SymR x y iR)]} (SymSym x y iR),
       (R x y iR) = {{ @eq _ lp:{{SymSym x y iR}} lp:iR }}.
