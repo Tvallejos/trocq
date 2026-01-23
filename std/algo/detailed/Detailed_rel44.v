@@ -20,7 +20,8 @@ Definition Param44_False : Param44.Rel False False :=
   MkUParam False_umap (eq_Map4 FalseR_sym False_umap).
 
 Elpi derive Unit.
-Definition UnitR_sym : forall u1 u2, sym_rel Unit_R u1 u2 <->> Unit_R u1 u2.
+(* Definition UnitR_sym : forall u1 u2, sym_rel Unit_R u1 u2 <->> Unit_R u1 u2. *)
+Definition UnitR_sym : forall u1 u2, Unit_R u2 u1 <->> Unit_R u1 u2.
 Proof.
   intros u1 u2.
   refine (Unit_sym u2 u1; _).
@@ -102,6 +103,10 @@ Proof.
   refine (Box_sym A B AR u1 u2; _).
   refine (Box_symK B A (sym_rel AR) u2 u1).
 Defined.
+
+Definition Param00_Box : forall (A B : Type) (AR : Param00.Rel A B), Param00.Rel (Box A) (Box B).
+  Fail refine( fun A B AR=> Param00.BuildRel _ _ (Box_R A B AR) _ (eq_Map0 (BoxR_sym A B AR) _)).
+Abort.
 
 Definition Param44_Box : forall (A B : Type) (AR : Param44.Rel A B), Param44.Rel (Box A) (Box B).
 Proof. 
