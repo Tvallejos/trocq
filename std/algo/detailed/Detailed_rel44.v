@@ -54,7 +54,7 @@ Abort.
 Definition Param44_Box : forall (A B : Type) (AR : Param44.Rel A B), Param44.Rel (Box A) (Box B).
 Proof. 
   refine (fun A B AR => Param44.BuildRel (Box_umap A B AR (Param44.covariant A B AR)) _).
-  refine (eq_Map4 (Box_rsymK B A (sym_rel AR)) (Box_umap _ _ _ (Param44.contravariant A B AR))).
+  refine (eq_Map4 (Box_rsymK B A (sym_rel AR)) (Box_umap B A (sym_rel AR) (Param44.contravariant A B AR))).
   Show Proof.
 Defined.
 
