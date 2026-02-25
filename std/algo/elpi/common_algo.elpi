@@ -6,9 +6,9 @@ rel-mode 0 {{ forall (A B : Type) (AR : A -> B -> Type) (_ : Map1.Has AR) (Rest 
 %rel-mode 0 {{ fun (A B : Type) (AR : A -> B -> Type) (Rest : Type)=> Map1.Has }}. % my-map
 rel-mode 1 {{ forall (A B : Type) (AR : A -> B -> Type) (_ : Map2a.Has AR) (Rest : Type), Rest }}. % mR
 %rel-mode 1 {{ Map2a.Has }}. % mR
-rel-mode 2 {{ forall (A B : Type) (AR : A -> B -> Type) (_ : Map2b.Has AR) (Rest : Type), Rest Map2b.Has }}. % Rm
-rel-mode 3 {{ forall (A B : Type) (AR : A -> B -> Type) (_ : Map3.Has AR) (Rest : Type), Rest Map3.Has }}. % _
-rel-mode 4 {{ forall (A B : Type) (AR : A -> B -> Type) (_ : Map4.Has AR) (Rest : Type), Rest Map4.Has }}. % mRRmK
+rel-mode 2 {{ forall (A B : Type) (AR : A -> B -> Type) (_ : Map2b.Has AR) (Rest : Type), Rest }}. % Rm
+rel-mode 3 {{ forall (A B : Type) (AR : A -> B -> Type) (_ : Map3.Has AR) (Rest : Type), Rest }}. % _
+rel-mode 4 {{ forall (A B : Type) (AR : A -> B -> Type) (_ : Map4.Has AR) (Rest : Type), Rest }}. % mRRmK
 % the following 3 don't require extra assumption on relation and should be processed differently
 rel-mode 5 {{ fun (A B : Type)=> A -> B -> Type }}. % sym
 rel-mode 6 {{ fun (A B : Type)=> A -> B -> Type }}. % symK
@@ -137,7 +137,7 @@ mk-mR-type-priv N (prod AN1 ATy1 a1\ prod AN2 ATy2 a2\ prod ARN (ARTy a1 a2) ar\
       std.append [am,ar,a2,a1] L NewL,
     mk-mR-type-priv M (Bo a1 a2 ar) ML {{ Type }} Rel Swap NewL MR-DB RM-DB (R a1 a2 ar am),
     coq.subst-prod [a1, a2, ar] ARSkel (prod _ (MTy a1 a2 ar) _),
-    coq.subst-prod [a1, a2, ar, am, (R a1 a2 ar am)] ARSkel (Rest a1 a2 ar am),
+    coq.subst-prod [a1, a2, ar, am, (R a1 a2 ar am)] ARSkel (Rest a1 a2 ar am).
 
 pred mk-mR-type-mR i:int, i:term, i:term, i:term, i:term, o:term.
 mk-mR-type-mR N T ML MR Rel RTy :-
