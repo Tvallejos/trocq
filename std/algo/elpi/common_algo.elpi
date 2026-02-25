@@ -2,15 +2,19 @@
 namespace derive.common-algo {
 
 pred rel-mode i:int o:term. 
-rel-mode 0 {{ Param10.Rel }}. % my-map
-rel-mode 1 {{ Param2a0.Rel }}. % mR
-rel-mode 2 {{ Param2b0.Rel }}. % Rm
-rel-mode 3 {{ Param30.Rel }}. % _
-rel-mode 4 {{ Param40.Rel }}. % mRRmK
+rel-mode 0 {{ forall (A B : Type) (AR : A -> B -> Type) (_ : Map1.Has AR) (Rest : Type), Rest }}. % my-map
+%rel-mode 0 {{ fun (A B : Type) (AR : A -> B -> Type) (Rest : Type)=> Map1.Has }}. % my-map
+rel-mode 1 {{ forall (A B : Type) (AR : A -> B -> Type) (_ : Map2a.Has AR) (Rest : Type), Rest }}. % mR
+%rel-mode 1 {{ Map2a.Has }}. % mR
+rel-mode 2 {{ forall (A B : Type) (AR : A -> B -> Type) (_ : Map2b.Has AR) (Rest : Type), Rest Map2b.Has }}. % Rm
+rel-mode 3 {{ forall (A B : Type) (AR : A -> B -> Type) (_ : Map3.Has AR) (Rest : Type), Rest Map3.Has }}. % _
+rel-mode 4 {{ forall (A B : Type) (AR : A -> B -> Type) (_ : Map4.Has AR) (Rest : Type), Rest Map4.Has }}. % mRRmK
+% the following 3 don't require extra assumption on relation and should be processed differently
 rel-mode 5 {{ fun (A B : Type)=> A -> B -> Type }}. % sym
 rel-mode 6 {{ fun (A B : Type)=> A -> B -> Type }}. % symK
 rel-mode 7 {{ fun (A B : Type)=> A -> B -> Type }}. % rsymK
-rel-mode 8 {{ Param44.Rel }}. % 
+% the following one should be moved to another file.
+rel-mode 8 {{ forall (A B : Type) (AR : A -> B -> Type) (_ : Map2a.Has AR) (Rest : Type), Rest Param44.Rel }}. % 
 
 pred swap i:term, i:term, i:bool, o:term, o:term.
 swap A B tt B A.
@@ -44,6 +48,11 @@ pred sym-tyargs i: list term, o: list term.
 sym-tyargs L R :-
   sym-tyargs-priv L [] R.
 
+pred clean-l i: list term, o: list term.
+clean-l [] [].
+clean-l [A1, A2, AR, _ | L2] [A1,A2,AR | R] :- 
+  clean-l L2 R.
+
 % The number of Type parameters in T
 % Type of inductive T,
 % Type of bin parametricity translation TR,
@@ -64,7 +73,8 @@ mk-mR-type-priv 0 (prod IN1 ITyTy x\ prod IN2 ITyTy2 _) ML _ Rel Swap LRev _ _
       std.rev LRev L,
       coq.mk-app ML {std.append L [x]} NewML, 
       NewMR = y,
-      coq.mk-app Rel {std.append L [x,y]} NewRel,
+      clean-l L CL,
+      coq.mk-app Rel {std.append CL [x,y]} NewRel,
       mk-return NewML NewMR NewRel Swap ITyTy2 (R x y).
 mk-mR-type-priv 0 (prod IN1 ITyTy x\ prod IN2 ITyTy2 _) _ _ Rel 4 LRev MR-DB RM-DB
              (prod IN1 ITyTy x\ prod IN2 ITyTy2 y\ prod `IR` (RelTy x y) iR\ (R x y iR)) :-
@@ -99,7 +109,7 @@ mk-mR-type-priv 0 (prod IN1 ITyTy x\ prod IN2 ITyTy2 _) RSym _ Rel 7 LRev _ _
   coq.mk-app Rel {std.append L2 [y,x]} (RelTy2 x y),
   RSkel x y = {{ lp:RSym lp:{{RelTy2 x y}} lp:{{RelTy1 x y}} }},
   whd1 (RSkel x y) (R x y).
-mk-mR-type-priv 0 (prod IN1 ITyTy x\ prod IN2 ITyTy2 _) _ _ Rel 8 _ _ _
+mk-mR-type-priv 0 (prod _ ITyTy x\ prod _ ITyTy2 _) _ _ _ 8 _ _ _
              R :-
   coq.mk-app { rel-mode 8 } [ITyTy, ITyTy2] R.
 % TODO: remove use of MR-DB, try just pass the MR and RM 
@@ -117,15 +127,17 @@ mk-mR-type-priv 0 (prod IN1 ITyTy x\ prod IN2 ITyTy2 _) SymC _ Rel 6 LRev _ _
       (R x y iR) = {{ @eq _ lp:{{SymSym x y iR}} lp:iR }}.
 % Process two type parameters + 1 relation at a time.
 % Apply these parameters to the LHS of the equation.
-mk-mR-type-priv N (prod AN1 ATy1 a1\ prod AN2 ATy2 a2\ prod ARN _ ar\ (Bo a1 a2 ar)) ML _ Rel Swap L MR-DB RM-DB
-             (prod AN1 ATy1 a1\ prod AN2 ATy2 a2\ prod ARN {{ lp:AR lp:a1 lp:a2 }} ar\ (R a1 a2 ar)) :-
+mk-mR-type-priv N (prod AN1 ATy1 a1\ prod AN2 ATy2 a2\ prod ARN (ARTy a1 a2) ar\ (Bo a1 a2 ar)) ML _ Rel Swap L MR-DB RM-DB
+             (prod AN1 ATy1 a1\ prod AN2 ATy2 a2\ prod ARN (ARTy a1 a2) ar\ prod NM (MTy a1 a2 ar) am\ (Rest a1 a2 ar am)) :-
   M is N - 1, 
   rel-mode Swap ARSkel,
-  coq.elaborate-skeleton ARSkel {{ Type -> Type -> Type }} AR ok,
-  pi a1 a2 ar\
+  coq.name-suffix AN1 "M" NM, 
+  pi a1 a2 ar am\
     sigma NewL\
-      std.append [ar,a2,a1] L NewL,
-    mk-mR-type-priv M (Bo a1 a2 ar) ML {{ Type }} Rel Swap NewL MR-DB RM-DB (R a1 a2 ar). %dummy newMR
+      std.append [am,ar,a2,a1] L NewL,
+    mk-mR-type-priv M (Bo a1 a2 ar) ML {{ Type }} Rel Swap NewL MR-DB RM-DB (R a1 a2 ar am),
+    coq.subst-prod [a1, a2, ar] ARSkel (prod _ (MTy a1 a2 ar) _),
+    coq.subst-prod [a1, a2, ar, am, (R a1 a2 ar am)] ARSkel (Rest a1 a2 ar am),
 
 pred mk-mR-type-mR i:int, i:term, i:term, i:term, i:term, o:term.
 mk-mR-type-mR N T ML MR Rel RTy :-
