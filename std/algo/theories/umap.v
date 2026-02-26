@@ -3,6 +3,7 @@ From Trocq Extra Dependency "algo/elpi/umap.elpi" as umap.
 From Trocq Extra Dependency "algo/elpi/common_algo.elpi" as common.
 From Trocq Extra Dependency "algo/elpi/utils.elpi" as algo_utils.
 From Trocq Require Import map4.
+Require Import Database.
 Unset Uniform Inductive Parameters. 
 
 Elpi Db derive.umap.db lp:{{
@@ -28,6 +29,7 @@ Elpi Accumulate Db derive.mRRmK.db.
 Elpi Accumulate File common.
 Elpi Accumulate File algo_utils.
 
+Elpi Accumulate Db trocq.db.
 Elpi Accumulate Db derive.umap.db.
 Elpi Accumulate File umap.
 Elpi Accumulate lp:{{
@@ -42,6 +44,7 @@ Elpi Accumulate lp:{{
 }}. 
 
 Elpi Accumulate derive Db derive.umap.db.
+Elpi Accumulate derive Db trocq.db.
 Elpi Accumulate derive File common.
 Elpi Accumulate derive File algo_utils.
 Elpi Accumulate derive File umap.
