@@ -10,6 +10,7 @@ Import HoTTNotations.
 From elpi.apps Require Import derive.legacy derive.param2.
 
 From Trocq Require Export Hierarchy.
+Require Import Database.
 Unset Uniform Inductive Parameters. 
 
 Elpi Db derive.rel44.db lp:{{
@@ -28,8 +29,7 @@ Elpi Accumulate Db Header derive.param2.db.
 Elpi Accumulate Db derive.param2.db.
 Elpi Accumulate Db Header derive.rsymK.db.
 Elpi Accumulate Db derive.rsymK.db.
-Elpi Accumulate Db Header derive.umap.db.
-Elpi Accumulate Db derive.umap.db.
+Elpi Accumulate Db trocq.db.
 Elpi Accumulate File common.  
 Elpi Accumulate File utils. 
 Elpi Accumulate Db Header derive.rel44.db.
@@ -59,8 +59,7 @@ Elpi Accumulate derive Db Header derive.rel44.db.
 Elpi Accumulate derive Db derive.rel44.db.
 Elpi Accumulate Db Header derive.rsymK.db.
 Elpi Accumulate Db derive.rsymK.db.
-Elpi Accumulate Db Header derive.umap.db.
-Elpi Accumulate Db derive.umap.db.
+Elpi Accumulate Db trocq.db.
 Elpi Accumulate derive File common.
 Elpi Accumulate derive File utils.  
 Elpi Accumulate derive File rel44.

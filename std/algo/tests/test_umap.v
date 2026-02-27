@@ -4,6 +4,7 @@ From Trocq Require Import coverage.
 Unset Uniform Inductive Parameters.
 
 Elpi derive False.
+Check False_map0 : Map0.Has False_R.
 Check False_map1 : Map1.Has False_R.
 Check False_map2a : Map2a.Has False_R.
 Check False_map2b : Map2b.Has False_R.
@@ -38,6 +39,7 @@ Elpi derive ThreeTypes.
 Check ThreeTypes_map4 : forall A1 A2 AR UR B1 B2 BR BUR C1 C2 CR CUR, IsUMap (ThreeTypes_R A1 A2 AR B1 B2 BR C1 C2 CR).
 
 Elpi derive List.
+Check List_map0 : forall A1 A2 AR UR, Map0.Has (List_R A1 A2 AR).
 Check List_map1 : forall A1 A2 AR UR, Map1.Has (List_R A1 A2 AR).
 Check List_map2a: forall A1 A2 AR UR, Map2a.Has (List_R A1 A2 AR).
 Check List_map2b: forall A1 A2 AR UR, Map2b.Has (List_R A1 A2 AR).
