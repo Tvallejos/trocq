@@ -86,19 +86,19 @@ implement-mapM M GR RUMap :-
 
 func main inductive, string -> list prop.
 main GR Prefix Clauses :- std.do! [
-  M = map4,
-  implement-mapM map4 GR RUMap,
   Ind = (global (indt GR)),
-  NameUMap is Prefix ^ "map" ^ {map-class.to_string M},
-  coq.ensure-fresh-global-id NameUMap FNameUMap,
-  %coq.env.add-const FNameUMap RUMap UMapTy _ CUMap,
-  % todo: check RUMap against UMapTy modulo universes
-  coq.env.add-const FNameUMap RUMap _ _ CUMap,
-  ClausesUMap = [umap-done GR, umap-db Ind (global (const CUMap))],
-  Clauses = ClausesUMap,
-  std.forall Clauses (x\
-    coq.elpi.accumulate _ "derive.umap.db" (clause _ _ x)
-  ),
+  std.fold {map-class.all-of-kind all} [] (M\ C\ C'\ sigma RUMap NameUMap FNameUMap CUMap Entry\
+    implement-mapM M GR RUMap,
+    NameUMap is Prefix ^ "map" ^ {map-class.to_string M},
+    coq.ensure-fresh-global-id NameUMap FNameUMap,
+    coq.env.add-const FNameUMap RUMap _ _ CUMap,
+    Entry = trocq.db.map-ind Ind M (global (const CUMap)),
+    coq.elpi.accumulate _ "trocq.db" (clause _ _ Entry),
+    C' = [Entry | C]
+  ) MClauses,
+  DEntry = (trocq.db.map-done GR),
+  coq.elpi.accumulate _ "trocq.db" (clause _ _ DEntry),
+  Clauses = [DEntry | MClauses],
 ].
 
 }
