@@ -13,7 +13,7 @@ From Trocq Require Export Hierarchy.
 Require Import Database.
 Unset Uniform Inductive Parameters. 
 
-Elpi Db derive.rel44.db lp:{{
+(* Elpi Db derive.rel44.db lp:{{
 
   % [rel44 I S] links I inductive type, 
   %  with the function showing i1 i2, [| I |]^ i2 i1 <->> [| I |] i1 i2
@@ -21,7 +21,7 @@ Elpi Db derive.rel44.db lp:{{
 
   % [rel44-done T K] means T K was already derived
   pred rel44-done o:inductive. 
-}}.
+}}. *)
 
 Elpi Command derive.rel44.
 Elpi Accumulate File derive_hook.
@@ -32,13 +32,7 @@ Elpi Accumulate Db derive.rsymK.db.
 Elpi Accumulate Db trocq.db.
 Elpi Accumulate File common.  
 Elpi Accumulate File utils. 
-Elpi Accumulate Db Header derive.rel44.db.
-Elpi Accumulate Db derive.rel44.db.
-
-Elpi Query lp:{{ 
-  T = {{:gref Param44.covariant }}, 
-  coq.say (pglobal T _).
-}}.
+Elpi Accumulate Db trocq.db.
 Elpi Accumulate File rel44.
 Elpi Accumulate lp:{{
   
@@ -55,8 +49,6 @@ Elpi Accumulate lp:{{
 }}. 
 
 (* hook into derive *)
-Elpi Accumulate derive Db Header derive.rel44.db.
-Elpi Accumulate derive Db derive.rel44.db.
 Elpi Accumulate Db Header derive.rsymK.db.
 Elpi Accumulate Db derive.rsymK.db.
 Elpi Accumulate Db trocq.db.
@@ -67,6 +59,6 @@ Elpi Accumulate derive lp:{{
 
 dep1 "rel44" "rsymK".
 dep1 "rel44" "umap".
-derivation (indt T) Prefix ff (derive "rel44" (derive.rel44.main T Prefix) (rel44-done T)).
+derivation (indt T) Prefix ff (derive "rel44" (derive.rel44.main T Prefix) (trocq.db.param-ind-done T)).
 
 }}.

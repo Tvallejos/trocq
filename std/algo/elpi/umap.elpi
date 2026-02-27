@@ -96,7 +96,7 @@ main GR Prefix Clauses :- std.do! [
     coq.elpi.accumulate _ "trocq.db" (clause _ _ Entry),
     C' = [Entry | C]
   ) MClauses,
-  DEntry = (trocq.db.map-done GR),
+  DEntry = (trocq.db.map-ind-done GR),
   coq.elpi.accumulate _ "trocq.db" (clause _ _ DEntry),
   Clauses = [DEntry | MClauses],
 ].

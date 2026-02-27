@@ -34,3 +34,4 @@ Check  ThreeTypes_rel44.
 
 Elpi derive List.
 Check List_rel44.
+Check List_rel2a2a.
