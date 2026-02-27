@@ -55,6 +55,6 @@ Elpi Accumulate derive File umap.
 Elpi Accumulate derive lp:{{
 
 dep1 "umap" "mRRmK".
-derivation (indt T) Prefix ff (derive "umap" (derive.umap.main T Prefix) (trocq.db.map-done T)).
+derivation (indt T) Prefix ff (derive "umap" (derive.umap.main T Prefix) (trocq.db.map-ind-done T)).
 
 }}.
