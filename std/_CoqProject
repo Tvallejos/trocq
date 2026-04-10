@@ -3,6 +3,7 @@
 
 -R . Trocq
 -R ../elpi/ Trocq.Elpi
+-R algo/elpi/ Trocq.Elpi.X
 
 HoTTNotations.v
 Common.v

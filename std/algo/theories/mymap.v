@@ -1,5 +1,5 @@
 From elpi.apps.derive.elpi Extra Dependency "derive_hook.elpi" as derive_hook.
-From Trocq Extra Dependency "algo/elpi/mymap.elpi" as mymap.
+From Trocq.Elpi.X Extra Dependency "mymap.elpi" as mymap.
 
 From elpi Require Import elpi.
 From elpi.apps Require Import derive.legacy.
