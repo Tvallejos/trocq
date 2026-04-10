@@ -11,17 +11,8 @@ From elpi.apps Require Export derive.bcongr. (* for eq_f register *)
 (* From Trocq Require Export mymap. *)
 (* todo: the real dependency is mymap *)
 From Trocq Require Import mR. 
+From Trocq Require Export mymap.
 Unset Uniform Inductive Parameters. 
-Elpi Db derive.Rm.db lp:{{
-  % [ar-db A1 A2 AR] returns the relation between a type A1 and A2.
-  pred ar-db i:term, i:term, o:term. 
-
-  % [Rm-db T D] links a type T to its corresponding R in map.
-  pred rm-db i:term, o:term.
-
-  % [Rm-done T] mean T was already derived
-  pred rm-done o:inductive.
-}}.
 
 Elpi Command derive.Rm.
 Elpi Accumulate File derive_hook.
@@ -46,6 +37,7 @@ Elpi Accumulate lp:{{
 
 (* hook into derive *)
 Elpi Accumulate derive Db Header derive.Rm.db.
+Elpi Accumulate derive Db Header derive.param2.db.
 Elpi Accumulate derive Db derive.Rm.db.
 Elpi Accumulate derive File common.
 Elpi Accumulate derive File algo_utils.
@@ -57,3 +49,24 @@ dep1 "Rm" "param2".
 derivation (indt T) Prefix ff (derive "Rm" (derive.Rm.main T Prefix) (rm-done T)).
 
 }}.
+
+
+Elpi derive.param2 nat.
+Elpi derive.mymap nat.
+Elpi derive.Rm nat.
+Inductive issue : nat -> Type := 
+| K : forall n, issue n -> issue (S (S n))
+| K2 : forall n, issue n.
+
+Elpi derive.param2 issue. 
+Elpi derive.mymap issue. 
+
+Check issue_mymap :
+  forall n1 n2 (r : nat_R n1 n2), issue n1 -> issue n2.
+
+Elpi derive.param2 option.
+Elpi derive.mymap option. 
+
+Check option_mymap :
+  forall A B (r : A -> B -> Type), Map1.Has r -> option A -> option B.
+

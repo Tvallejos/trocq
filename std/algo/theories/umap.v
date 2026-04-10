@@ -48,6 +48,7 @@ Elpi Accumulate lp:{{
 }}. 
 
 Elpi Accumulate derive Db trocq.db.
+Elpi Accumulate derive Db Header derive.param2.db.
 Elpi Accumulate derive File common.
 Elpi Accumulate derive File algo_utils.
 Elpi Accumulate derive File umap.

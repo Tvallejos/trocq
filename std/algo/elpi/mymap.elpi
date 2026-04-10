@@ -9,7 +9,7 @@ mymap-db (app[global (indt GR1)|A1]) (app[global (indt GR2)|A2]) R :-
   coq.env.indt GR2 _ Lno2 _ _ _ _,
   {length A1} > Lno1, {length A2} > Lno2,
   split-at Lno1 A1 Args1 Points1,
-  split-at Lno2 A2 Args2 Points2,
+  split-at Lno2 A2 Args2 _Points2,
   mymap-db {coq.mk-app (global (indt GR1)) Args1}
            {coq.mk-app (global (indt GR2)) Args2} F,
   coq.mk-app F Points1 R.
@@ -75,8 +75,6 @@ bo-k-args.aux R [] [] _ R :- coq.say "Attempt:" {coq.term->string R}, coq.typech
 bo-k-args.aux K [A|As] [T|Ts] (prod _ S Ty) R :-
   map-this A T S FA,
   bo-k-args.aux {coq.mk-app K [FA]} As Ts (Ty FA) R.
-% bo-k-args.aux K [A|As] [_|Ts] (prod _ _ Ty) R :- !,
-%   bo-k-args.aux {coq.mk-app K [A]} As Ts (Ty A) R.
 bo-k-args.aux K As Ts X R :- whd1 X X1, !,
   bo-k-args.aux K As Ts X1 R.
 
@@ -177,7 +175,48 @@ mk-map-ty A _ B _ RelTy RTerm Map F 0 [mymap-db A B {{ Map1.map _ lp:F }} ] :-
 
 % mk-map-ty A _ B _ (prod `x` A _\ B) F 0 [mymap-db A B F].
 
+pred separate-idx
+  i:int,
+  i:term, % inductive type (input) applied to parameters handled so far
+  i:term, % inductive type (output) applied to parameters handled so far
+  i:term, % inductive type (output) applied to parameters handled so far
+  o:term. % map function
+separate-idx 0 {{ forall i : lp:TI, forall j : lp:TJ, forall r : lp:(TR i j), lp:(A i j r) }} I J
+               {{ fun (i : lp:TI) (j : lp:TJ) (r : lp:(TR i j)) => lp:(R i j r) }} :- !,
+  @pi-decl `i` TI i\ 
+  @pi-decl `j` TJ j\ 
+  @pi-decl `r` (TR i j) r\ 
+     sigma RMJR\
+     separate-idx 0 (A i j r) {coq.mk-app I [i]} {coq.mk-app J [j]} (R1 i j r),
+     std.spy-do! [
+       rm-db TI RM,
+       coq.mk-app RM [i,j,r] RMJR,
+       R i j r = match RMJR {{ fun w (e : _ = w) => lp:{{ A i {{ w }} i }} }} [R1 i j r]
+     ].
+separate-idx 0 (prod _ Ty _\ _) I J F :- !,
+  std.spy(mymap-db I J F), !,
+  coq.say "Base:" I J F.
+separate-idx N {{ forall i : lp:TI, forall j : lp:TJ, forall r : lp:(TR i j), lp:(A i j r) }} I J
+               {{ fun (i : lp:TI) (j : lp:TJ) (r : lp:(TR i j)) (h : Map1.Has r) => lp:(R i j r h) }} :-
+  N > 0, M is N - 1,
+  @pi-decl `i` TI i\ 
+  @pi-decl `j` TJ j\ 
+  @pi-decl `r` (TR i j) r\ 
+  @pi-decl `h` {{ Map1.Has lp:r }} h\
+  (param  i j r :- !) =>
+  mymap-db i j h =>
+    separate-idx M (A i j r) {coq.mk-app I [i]} {coq.mk-app J [j]} (R i j r h).
+
 % Build a clause %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+% pi c0 \
+%  pi c1 \
+%   pi c2 \
+%    mymap-db (app [global (indt «option»), c0]) 
+%     (app [global (indt «option»), c1]) 
+%     (app [global (const «option_mymap_uniform»), c0, c1, cr, c2]) :- 
+%     rel-db c0 c1 cr,
+%     mymap-db c0 c1 c2
 
 pred mk-clause
   i:int, % current parameter
@@ -189,25 +228,41 @@ pred mk-clause
   i:term, % map function
   o:prop. % clause for mymap-db
 mk-clause N N Ity1 Ity2 _ Todo Map (mymap-db Ity1 Ity2 Map :- Todo).
-mk-clause N Lno Ity1 Ity2 (prod _ _ T) Todo Map (pi x y f\ C x y f) :- !,
+mk-clause N Lno Ity1 Ity2 (prod _ _ T) Todo Map (pi x y r f\ C x y r f) :- !,
   N1 is N + 1,
-  pi x y f\ sigma Ity1x Ity2y Mapf\
+  pi x y r f\ sigma Ity1x Ity2y Mapf\
     coq.mk-app Ity1 [x] Ity1x,
     coq.mk-app Ity2 [y] Ity2y,
-    coq.mk-app Map [x,y,f] Mapf,
-    mk-clause N1 Lno Ity1x Ity2y (T x) [mymap-db x y f|Todo] Mapf (C x y f).
+    coq.mk-app Map [x,y,r,f] Mapf,
+    mk-clause N1 Lno Ity1x Ity2y (T x) [param x y r, mymap-db x y f|Todo] Mapf (C x y r f).
 mk-clause N Lno Ity1 Ity2 X Todo Map C :- whd1 X X1, !,
   mk-clause N Lno Ity1 Ity2 X1 Todo Map C.
 
+func truncate term -> term.
+truncate (prod N T1 _\ prod _ T2 _\ sort _) (prod N T1 _\ T2) :- !.
+truncate (prod N T A) (prod N T A1) :- @pi-decl N T x\ truncate (A x) (A1 x).
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 func main inductive, string -> list prop.
-main GR Prefix C :- do! [
+main GR Prefix C :- std.spy-do! [
   T = global (indt GR),
   coq.env.indt GR _Ind Lno Luno Arity _ _,
   assert! (Lno = Luno) "derive.mymap: Non-uniform parameters not supported",
 
   % generate map and add to the env
-  (bo-params 0 Lno T T Arity Arity [] RSkel),
+  (bo-params 0 Lno T T Arity Arity [] RSkelU),
+  coq.say "MapU:" {coq.term->string RSkelU},
+  std.assert-ok! (coq.elaborate-skeleton RSkelU RtyU RU) "derive.mymap generates illtyped term",
+  NameU is Prefix ^ "mymap_uniform",
+  coq.ensure-fresh-global-id NameU FNameU,
+  coq.env.add-const FNameU RU RtyU @transparent! FunctU,
+
+  mk-clause 0 Lno T T Arity [] (global (const FunctU)) ClauseU,
+  param T T TP, !,
+  std.assert-ok! (coq.typecheck TP TPTy) "param2 illtyped",
+  truncate TPTy TPTyTrunc,
+  coq.say "XXXXXXXXXXXXX" ClauseU,
+  (ClauseU =!=> separate-idx Lno TPTyTrunc T T RSkel),
   coq.say "Map:" {coq.term->string RSkel},
   std.assert-ok! (coq.elaborate-skeleton RSkel Rty R) "derive.mymap generates illtyped term",
   Name is Prefix ^ "mymap",

@@ -47,6 +47,7 @@ Elpi Accumulate lp:{{
 }}. 
 
 (* hook into derive *)
+Elpi Accumulate derive Db derive.param2.db.
 Elpi Accumulate derive Db derive.mR.db.
 Elpi Accumulate derive File discr.
 Elpi Accumulate derive File common.

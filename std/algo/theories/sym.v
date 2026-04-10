@@ -48,6 +48,7 @@ Elpi Accumulate lp:{{
 
 Elpi Accumulate derive Db Header derive.sym.db.
 Elpi Accumulate derive Db derive.sym.db.
+Elpi Accumulate derive Db Header derive.param2.db.
 Elpi Accumulate derive File common.
 Elpi Accumulate derive File utils. 
 Elpi Accumulate derive File sym.
