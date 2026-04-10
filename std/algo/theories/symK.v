@@ -50,8 +50,9 @@ Elpi Accumulate lp:{{
 (* hook into derive *)
 Elpi Accumulate derive Db Header derive.symK.db.
 Elpi Accumulate derive Db derive.symK.db.
-Elpi Accumulate Db Header derive.sym.db.
-Elpi Accumulate Db derive.sym.db.
+Elpi Accumulate derive Db Header derive.sym.db.
+Elpi Accumulate derive Db derive.sym.db.
+Elpi Accumulate derive Db Header derive.param2.db.
 Elpi Accumulate derive File common.
 Elpi Accumulate derive File utils.  
 Elpi Accumulate derive File symK.

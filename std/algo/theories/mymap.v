@@ -1,8 +1,9 @@
 From elpi.apps.derive.elpi Extra Dependency "derive_hook.elpi" as derive_hook.
-From Trocq Extra Dependency "algo/elpi/mymap.elpi" as mymap.
+From Trocq.Elpi.X Extra Dependency "mymap.elpi" as mymap.
 
 From elpi Require Import elpi.
 From elpi.apps Require Import derive.legacy.
+From elpi.apps Require Export derive.param2.
 From Trocq Require Export Hierarchy.
 Unset Uniform Inductive Parameters. 
 
@@ -16,10 +17,30 @@ Elpi Db derive.mymap.db lp:{{
   % [mymap-done T] mean T was already derived
   pred mymap-done o:inductive.
 }}.
+(* In Elpi clauses accumulated
+  programmatically are typechecked only in a context given by the header of
+  database, hence  *)
+#[superglobal] Elpi Accumulate derive.mymap.db Db Header derive.param2.db.
+
+Elpi Db derive.Rm.db lp:{{
+  % [ar-db A1 A2 AR] returns the relation between a type A1 and A2.
+  pred ar-db i:term, i:term, o:term. 
+
+  % [Rm-db T D] links a type T to its corresponding R in map.
+  pred rm-db i:term, o:term.
+
+  % [Rm-done T] mean T was already derived
+  pred rm-done o:inductive.
+
+  :name "rm-db:fail"
+  rm-db T _ :- coq.error "please run derive.rm on" T.
+}}.
 
 Elpi Command derive.mymap.
 Elpi Accumulate File derive_hook.
 Elpi Accumulate Db derive.mymap.db.
+Elpi Accumulate Db derive.Rm.db.
+Elpi Accumulate Db derive.param2.db.
 Elpi Accumulate File mymap.
 Elpi Accumulate lp:{{
   main [str I] :- !, 
@@ -44,6 +65,8 @@ Elpi Accumulate lp:{{
 
 (* hook into derive *)
 Elpi Accumulate derive Db derive.mymap.db.
+Elpi Accumulate derive Db derive.Rm.db.
+Elpi Accumulate derive Db derive.param2.db.
 Elpi Accumulate derive File mymap.
 
 Elpi Accumulate derive lp:{{
@@ -51,5 +74,3 @@ Elpi Accumulate derive lp:{{
 derivation (indt T) Prefix ff (derive "mymap" (derive.mymap.main T Prefix) (mymap-done T)).
 
 }}.
-
-

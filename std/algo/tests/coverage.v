@@ -37,3 +37,12 @@ Inductive ThreeTypes (A B C : Type) :=
 Inductive List (A : Type) : Type :=
 | Nil : List A 
 | Cons : A -> List A -> List A.
+
+Inductive Vector (A : Type) : Nat -> Type := 
+| VNil : Vector A O'
+| VCons n : Vector A n -> A -> Vector A (S' n).
+
+Inductive Issue : Nat -> Type := 
+| IK n : Issue n -> Issue (S' (S' n)).
+
+

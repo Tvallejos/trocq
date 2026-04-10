@@ -157,7 +157,7 @@ main GR Prefix Clauses :- std.do! [
   I = global (indt GR),
   Clauses = [rm-done GR, rm-db I (global (const C))],
   std.forall Clauses (x\
-    coq.elpi.accumulate _ "derive.Rm.db" (clause _ _ x)
+    coq.elpi.accumulate _ "derive.Rm.db" (clause _ (before "rm-db:fail") x)
   ),
 ].
 
