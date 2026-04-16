@@ -29,6 +29,7 @@ Proof.
 by move=> P1 a' aR; rewrite -[X in P _ X](R_in_mapK AR); case: _ / R_in_map.
 Defined.
 
+
 Lemma ind_mapP@{i +} {A A' : Type@{i}} (AR : Param40.Rel@{i} A A') (a : A)
   (P : forall a', AR a a' -> map@{i} AR a = a' -> Type@{i})
   (P1 : P (map@{i} AR a) (map_in_R@{i} AR a (map@{i} AR a) 1%path) 1%path)
@@ -47,6 +48,15 @@ Lemma weak_ind_map@{i} {A A' : Type@{i}} (AR : Param40.Rel@{i} A A') a
   (P (map AR a) (map_in_R AR a (map AR a) 1%path)) ->
   forall a' aR, P a' aR.
 Proof. by move=> P1 a' aR; elim/(ind_map AR): aR / _. Defined.
+
+Lemma ind_rel {U A' : Type} (AR : Param40.Rel U A') a
+  (P : forall a', AR a a' -> map AR a = a' -> Type) :
+  (P (map AR a) (map_in_R AR a (map AR a) 1%path) 1) ->
+  forall a' e, P a' (map_in_R AR _ _ e) e.
+Proof.
+by move=> P1 a' e; case: _ /e.
+Defined.
+
 
 Lemma ind_comap@{i} {A A' : Type@{i}} (AR : Param04.Rel@{i} A A') a'
   (P : forall a, AR a a' -> comap AR a' = a -> Type@{i}) :

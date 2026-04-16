@@ -44,46 +44,55 @@ Section Genthm722.
   Variable A B : Type.
   Variable R : A -> B -> Type.
   Variable m : A -> B.
-  Variable Rrefl : forall x, R x (m x). (* 2a *)
+  Variable Rrefl : forall x y, m x = y -> R x y. (* 2a *)
   Variable imp : forall x y, R x y -> m x = y. (* 2b *)
   Variable MereR : forall x y (r1 r2 : R x y), r1 = r2.
 
   Definition F {x : A} {y : B}  (p : m x = y) := apd (imp x) p.
 
-  Definition inverses_concat_tr : forall x,
-  forall p : m x = m x,
-  imp x (m x) (Rrefl x) @ p = imp x (m x) (tr _ p (Rrefl x)).
-  Proof. move=> x p.
+  Definition inverses_concat_tr : forall x y,
+  forall p : m x = y,
+  imp x (m x) (Rrefl _ _ 1) @ p = imp x y (tr _ p (Rrefl _ _ 1)).
+  Proof. move=> x y p.
   rewrite -tr_concat.
   apply L.
   exact: F.
   Defined.
 
-  Definition path_shape : forall x,
-  forall p : m x = m x,
-  p = (imp x (m x) (Rrefl x))^ @ imp x (m x) (@tr _ _ _ _ p (Rrefl x)).
+  Definition path_shape {x y}: 
+  forall p : m x = y,
+  p = (imp x (m x) (Rrefl _ _ 1))^ @ imp x y (tr _ p (Rrefl _ _ 1)).
   Proof.
-  move=> x p.
+  move=> p.
   rewrite -[LHS](concat_1p p).
-  rewrite -(concat_Vp (imp x (m x) (Rrefl x))).
+  rewrite -[X in X @ p](concat_Vp (imp x (m x) (Rrefl _ _ 1))).
   rewrite concat_pp_p.
   apply ap.
   apply inverses_concat_tr.
   Defined.
 
-  Lemma tr_id : forall (x : A) (p : m x = m x), tr (fun y=> R x y) p (Rrefl x) = (Rrefl x).
-  Proof. move=> x p; apply MereR. Qed.
-
-  Definition UIP_MA {x y : A} (p q : m x = m y): p = q.
-  Proof.
-  move: q.
-  refine (match p as p0 return forall q, p0 = q with eq_refl => _ end).
-  move=> q.
-  rewrite (path_shape x 1) /=.
-  rewrite (path_shape x q).
-  (* rewrite -uniqr. *)
-  by rewrite tr_id.
+  (* Lemma tr_id : forall (x y : A) (p : m x = m y), tr (fun y=> R x y) p (Rrefl x) = (Rrefl y). *)
+  Lemma tr_id : forall (x : A) y (p : m x = y), tr (fun y=> R x y) p (Rrefl _ _ 1) = (Rrefl x y p).
+  Proof. 
+  move=> x y p.
+  by case: _ / p.
   Defined.
+
+  (* Require Import Equations. *)
+  Definition UIP_MA {x : A} y (p q : m x = y): p = q.
+  Proof.
+  (* move: q.
+  refine (match p as p0 return forall q, p0 = q with eq_refl => _ end).
+  move=> q. *)
+  rewrite (path_shape p) /=.
+  rewrite (path_shape q).
+  f_equal.
+  f_equal.
+  rewrite tr_id.
+  rewrite tr_id.
+  apply MereR.
+  Defined.
+  Print Assumptions UIP_MA.
 
   Section inj.
     Definition injective {A B : Type} (f : A -> B) := forall x y, f x = f y -> x = y.

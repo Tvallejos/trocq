@@ -94,7 +94,7 @@ Section RmmRK.
   by case: _ / e1.
   Defined.
 
-  Definition RmmRK : forall a b (e : map a = b), 
+  Theorem RmmRK : forall a b (e : map a = b), 
    R_in_map _ _ (map_in_R _ _ e) = e.
   Proof.
   move=> a b e.
@@ -108,6 +108,16 @@ Section RmmRK.
   rewrite mRRmK.
   reflexivity.
   Defined.
+
+
+Lemma no_conf a a' (P : map a = a' -> Type) 
+  (PH : forall ar, P (R_in_map _ _ ar))
+  : forall e, P e .
+Proof.
+move=> e.
+rewrite -(RmmRK _ _ e).
+apply PH.
+Defined.
 
 End RmmRK.
 
