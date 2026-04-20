@@ -23,8 +23,8 @@ inductives/test_Rm.v
 inductives/test_injK.v
 inductives/test_mRRmK.v
 inductives/test_map4.v
-inductives/test_umap.v
-inductives/test_Rel44.v
+inductives/test_mapn.v
+inductives/test_Relnm.v
 
 # Bug with trocq ?
 # The generated type has the wrong type
