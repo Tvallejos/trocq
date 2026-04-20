@@ -25,8 +25,8 @@ inductives/test_Rm.v
 inductives/test_injK.v
 inductives/test_mRRmK.v
 inductives/test_map4.v
-inductives/test_umap.v
-inductives/test_Rel44.v
+inductives/test_mapn.v
+inductives/test_Relnm.v
 
 # Trocq produces an ill-typed term
 #unit_transfer3.v
