@@ -12,6 +12,9 @@
 (*****************************************************************************)
 Require Import ssreflect.
 From Trocq Require Import HoTTNotations.
+From elpi Require Export elpi.
+
+Register concat as trocq.concat. 
 
 Set Universe Polymorphism.
 Unset Universe Minimization ToSet.

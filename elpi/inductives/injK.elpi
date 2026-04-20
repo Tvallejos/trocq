@@ -121,7 +121,7 @@ mk-preds I ArgNo [P|Preds] Args1 Args2 TyArgs2 Paths TyPaths [ fun `t` Ty t\ fun
 pred iter-convs i:list term, i:list term, i:list term, i:list term, i:list term, i:term, o:term.
 iter-convs [] [] [] [] [] End End.
 iter-convs [Ty|Tys] [A1|Args1] [A2|Args2] [Path|Paths] [Pred|Preds] End R :-
-  Conv = {{lib:@elpi.derive.conv}},
+  Conv = {{lib:@trocq.conv}},
   iter-convs Tys Args1 Args2 Paths Preds End P0,
   coq.mk-app Conv [ Ty, A1, A2, Path, Pred, P0] R.
 

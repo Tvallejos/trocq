@@ -11,13 +11,7 @@
 (*                            * see LICENSE file for the text of the license *)
 (*****************************************************************************)
 
-Require Import ssreflect.
-Require Import Stdlib Hierarchy.
-
-Import HoTTNotations.
-
-Require Import Database.
-From Trocq Require Import Relnm. 
+From Trocq Require Import HoTTNotations Relnm. 
 
 (* translations of inductives in Prop is not yet supported, 
 but we can still generate everything for False by manually defining its parametricity translation and making it land in Type. *)

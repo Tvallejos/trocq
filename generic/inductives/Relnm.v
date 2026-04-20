@@ -9,8 +9,7 @@ Import HoTTNotations.
 
 From elpi.apps Require Import derive.legacy derive.param2.
 
-From Trocq Require Export Hierarchy.
-Require Import Database.
+From Trocq Require Export Stdlib Hierarchy Param_lemmas.
 Unset Uniform Inductive Parameters. 
 
 (* Elpi Db derive.rel44.db lp:{{
