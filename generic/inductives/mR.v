@@ -11,7 +11,7 @@ From elpi.apps Require Export derive.bcongr (* for eq_f register *)
                               derive.isK. (* for isK db required by discriminate *)
 From Trocq Require Export mymap injection_lemmas. 
 
-From Trocq Require Export Hierarchy.
+From Trocq Require Export Hierarchy Param_lemmas Stdlib.
 Unset Uniform Inductive Parameters. 
 
 Elpi Db derive.mR.db lp:{{
@@ -69,3 +69,8 @@ derivation (indt T) Prefix ff (derive "mR" (derive.mR.main T Prefix) (mR-done T)
 
 
 
+Elpi derive.mymap False.
+Elpi derive.param2 False.
+Elpi derive.injections False.
+Elpi derive.isK False.
+Elpi derive.mR False.

@@ -8,6 +8,8 @@ From elpi.apps Require Import derive.legacy.
 From elpi.apps Require Export derive.bcongr. (* for eq_f register  *)
 From elpi.apps Require Export derive.projK. 
 
+From Trocq Require Export Stdlib.
+
 Unset Uniform Inductive Parameters. 
 Elpi Db derive.injections.db lp:{{
 
