@@ -66,11 +66,3 @@ derivation (indt T) Prefix ff (derive "mR" (derive.mR.main T Prefix) (mR-done T)
 
 }}.
 
-
-
-
-Elpi derive.mymap False.
-Elpi derive.param2 False.
-Elpi derive.injections False.
-Elpi derive.isK False.
-Elpi derive.mR False.
