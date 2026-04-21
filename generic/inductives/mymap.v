@@ -2,7 +2,7 @@ From elpi.apps.derive.elpi Extra Dependency "derive_hook.elpi" as derive_hook.
 From Trocq.Elpi Extra Dependency "inductives/mymap.elpi" as mymap.
 
 From elpi Require Import elpi.
-From elpi.apps Require Import derive.legacy.
+From elpi.apps Require Import derive.
 From Trocq Require Export Stdlib Hierarchy.
 Unset Uniform Inductive Parameters. 
 
