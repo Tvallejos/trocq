@@ -11,7 +11,8 @@
 (*                            * see LICENSE file for the text of the license *)
 (*****************************************************************************)
 
-From Trocq Require Import HoTTNotations Relnm. 
+From Trocq Require Import Relnm. 
+From Trocq Require Export HoTTNotations.
 
 Set Universe Polymorphism.
 Unset Universe Minimization ToSet.
