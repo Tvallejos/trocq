@@ -5,8 +5,7 @@ From Trocq.Elpi Extra Dependency "inductives/mR.elpi" as mR.
 From Trocq.Elpi Extra Dependency "inductives/injection_lemmas.elpi" as injections.
 
 From elpi Require Import elpi.
-From elpi.apps Require Export derive.param2 derive.isK.
-From elpi.apps Require Export derive.isK. (* for isK db required by discriminate *)
+From elpi.apps Require Export derive.param2 derive.isK. (* for isK db required by discriminate *)
 From Trocq Require Export DeriveLib mymap injection_lemmas. 
 
 From Trocq Require Export Hierarchy Param_lemmas Stdlib.
