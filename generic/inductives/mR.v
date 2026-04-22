@@ -6,9 +6,7 @@ From Trocq.Elpi Extra Dependency "inductives/injection_lemmas.elpi" as injection
 
 From elpi Require Import elpi.
 From elpi.apps Require Export derive.param2 derive.isK.
-(* todo: ask for bool_discr to be defined elsewhere *)
-From elpi.apps Require Export derive.eqK (*for bool_discr *)
-                              derive.isK. (* for isK db required by discriminate *)
+From elpi.apps Require Export derive.isK. (* for isK db required by discriminate *)
 From Trocq Require Export DeriveLib mymap injection_lemmas. 
 
 From Trocq Require Export Hierarchy Param_lemmas Stdlib.
@@ -29,8 +27,8 @@ Elpi Accumulate File derive_hook.
 Elpi Accumulate Db Header derive.param2.db.
 Elpi Accumulate Db derive.param2.db.
 Elpi Accumulate Db derive.mymap.db.
-Elpi Accumulate File discr.
 Elpi Accumulate Db derive.isK.db.
+Elpi Accumulate File discr.
 Elpi Accumulate Db derive.injections.db.
 Elpi Accumulate File common.
 Elpi Accumulate Db derive.mR.db.
