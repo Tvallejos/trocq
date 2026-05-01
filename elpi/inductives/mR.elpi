@@ -48,9 +48,9 @@ build-mRA-ty-args [ATy1| ArgsTy1] [ATy2| ArgsTy2] MR R :-
 pred build-mRA i:term, i:term, i:term, o:term.
 build-mRA ATy1 ATy2 Ind R :-
   whd ATy1 [] ITy ArgsTy1,
-  whd ATy2 [] _ ArgsTy2,
+  whd ATy2 [] ITy2 ArgsTy2,
   coq.typecheck Ind IndTy _,
-  mR-db ITy MR,
+  mR-db ITy _ MR,
   % TODO: change following line to implement non uniform parameters + definition of the fix.
   if (ATy1 = IndTy)
     (R = MR)
@@ -124,19 +124,20 @@ pred implement-mR i:int, i:int, i:term, o:term.
 % Bo is i1\ i2\               mapI Args1 Args2 ARs i1 = i2 -> IR Args1i Args2i ARsi i1 i2.
 % todo: Carry the list of TyArgs, needed for apply-ind params.
 implement-mR 0 TyParamNo (prod I1 I1Ty i1\ prod I2 I2Ty i2\ (Bo i1 i2)) (fix `f` 0 RT f\ fun I1 I1Ty i1\ fun I2 I2Ty i2\ (R f i1 i2)) :-
-  Ind = (global (indt GR)),
   coq.safe-dest-app I1Ty Ind _, 
+  coq.env.global (indt GR) Ind,
   coq.env.recursive? GR, !,
   RT = (prod I1 I1Ty i1\ prod I2 I2Ty i2\ (Bo i1 i2)),
   @pi-decl `f` RT f\
   @pi-decl I1 I1Ty i1\
   @pi-decl I2 I2Ty i2\
-    mR-db Ind f =>
+    % TODO: I'm a bug fix me
+    mR-db Ind Ind f =>
     coq.build-match i1 I1Ty (rty-1 Bo i2) (mkBranch TyParamNo Bo i2 I2Ty) (R f i1 i2).
 implement-mR 0 TyParamNo (prod I1 I1Ty i1\ prod I2 I2Ty i2\ (Bo i1 i2)) (fun I1 I1Ty i1\ fun I2 I2Ty i2\ (R i1 i2)) :-
   @pi-decl I1 I1Ty i1\
   @pi-decl I2 I2Ty i2\
-    coq.build-match i1 I1Ty (rty-1 Bo i2) (mkBranch TyParamNo Bo i2 I2Ty) (R i1 i2).
+    !, coq.build-match i1 I1Ty (rty-1 Bo i2) (mkBranch TyParamNo Bo i2 I2Ty) (R i1 i2).
 implement-mR N TyParamNo (prod A1 A1Ty a1\ prod A2 A2Ty a2\ prod AR (ARTy a1 a2) ar\ prod AM (AMTy a1 a2 ar) am\ (Bo a1 a2 ar am)) 
                          (fun  A1 A1Ty a1\  fun A2 A2Ty a2\  fun AR (ARTy a1 a2) ar\ fun AM (AMTy a1 a2 ar) am\ (R a1 a2 ar am)) :-
   M is N - 1,
@@ -152,8 +153,8 @@ implement-mR N TyParamNo (prod A1 A1Ty a1\ prod A2 A2Ty a2\ prod AR (ARTy a1 a2)
     MR = pglobal {{:gref lib:trocq.map2a.map_in_r }} _,
     coq.mk-app MR [a1,a2,ar,am] (PMR a1 a2 ar am),
     coq.elaborate-skeleton (PMR a1 a2 ar am) _ (MRA a1 a2 ar am) ok,
-    mymap-def A1Ty (MapA a1 a2 ar am) ==>
-    mR-db a1 (MRA a1 a2 ar am) ==>
+    mymap-db A1Ty A2Ty (MapA a1 a2 ar am) ==>
+    mR-db a1 a2 (MRA a1 a2 ar am) ==>
     % todo: check usage of ar-db in mR
     ar-db a1 a2 ar ==>
     implement-mR M TyParamNo (Bo a1 a2 ar am) (R a1 a2 ar am).
@@ -163,18 +164,18 @@ func main inductive, string -> list prop.
 main GR Prefix Clauses :- std.do! [
   Name is Prefix ^ "mR",
   coq.env.indt GR _ UnifParamNo _ _ _ _,
-  Ind = (global (indt GR)),
+  coq.env.global (indt GR) Ind,
+  % Ind = (global (indt GR)),
   param Ind Ind TR,
   coq.typecheck TR TRTy _,
-  mymap-def Ind IndMap,
-  mk-mR-type-mR UnifParamNo TRTy IndMap {{ Type }} TR MRTy,
+  mymap-def (indt GR) IndMapGR,
+  mk-mR-type-mR UnifParamNo TRTy {coq.env.global IndMapGR} {{ Type }} TR MRTy,
   std.assert-ok! (coq.elaborate-skeleton MRTy _ MRTyE) "derive.mR generates illtyped type",
   implement-mR UnifParamNo UnifParamNo MRTyE T,
   std.assert-ok! (coq.elaborate-skeleton T MRTyE TE) "derive.mR generates illtyped term",
   coq.ensure-fresh-global-id Name FName,
   coq.env.add-const FName TE MRTyE _ C,
-  I = global (indt GR),
-  Clauses = [mR-done GR, mR-db I (global (const C))],
+  Clauses = [mR-done GR, mR-def (indt GR) (const C)],
   std.forall Clauses (x\
     coq.elpi.accumulate _ "derive.mR.db" (clause _ _ x)
   ),

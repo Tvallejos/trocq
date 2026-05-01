@@ -168,15 +168,16 @@ feed-mRRmK-type [A2|Args] T R :-
   coq.mk-app T [A1, A2, AR] Acc,
   feed-mRRmK-type Args Acc R.
 
-pred find-mRRmK i:list term, i:term, o: list term.
-find-mRRmK [] _ [].
-find-mRRmK [Ty|Tys] IndTy [MRRMK|MRRMKs] :-
-  coq.safe-dest-app Ty Ind TyArgs,
-  mRRmK-db Ind MRRMKS,
+pred find-mRRmK i:list term, i:list term, i:term, o: list term.
+find-mRRmK [] [] _ [].
+find-mRRmK [STy| STys][DTy|DTys] IndTy [MRRMK|MRRMKs] :-
+  coq.safe-dest-app STy Ind2 TyArgs2,
+  coq.safe-dest-app DTy Ind TyArgs,
+  mRRmK-db Ind2 Ind MRRMKS,
   if (IndTy = Ind)
     (MRRMK = MRRMKS)
     (feed-mRRmK-type TyArgs MRRMKS MRRMK),
-  find-mRRmK Tys IndTy MRRMKs.
+  find-mRRmK STys DTys IndTy MRRMKs.
 
 % invariant: all type arguments were already processed. 
 % Constructor src, Constructor dest, Constructor dest Type, No of Arguments to process, 
@@ -184,9 +185,9 @@ find-mRRmK [Ty|Tys] IndTy [MRRMK|MRRMKs] :-
 % Argno, InjKs
 pred mkBranch i:term, i:term, i:int, i:term, i:term, i:term, i:term, i:list term, o:term.
 mkBranch KS KD N KTyR ITyTy Goal KR InjKs Eq:-
-  type-of-args KTyR N _ DestArgs,
+  type-of-args KTyR N SrcArgs DestArgs,
   whd ITyTy [] Hd TyArgs,
-  find-mRRmK DestArgs Hd MRRMKS,
+  find-mRRmK SrcArgs DestArgs Hd MRRMKS,
   % for every type dest add mRRmK to a list. 
   process-args KS KD N N {std.length TyArgs} KTyR Goal ITyTy KR InjKs MRRMKS [] Eq.
 
@@ -209,7 +210,7 @@ pred implement-mRRmK i:int, i:term, i:list term, i:list term, i:list term, i:lis
 implement-mRRmK 0 (prod IN1 ITy1 i1\ prod IN2 ITy2 i2\ prod ARN (ARTy i1 i2) ar\ (Bo i1 i2 ar)) KsS KsD KTys KTyRs Pred RInd KRs InjKss
             (fix `f` 2 RT f\ fun IN1 ITy1 i1\ fun IN2 ITy2 i2\ fun ARN (ARTy i1 i2) ar\ (Re f i1 i2 ar)) :-
   coq.safe-dest-app ITy1 Ind _, 
-  Ind = (global (indt GR)),
+  coq.env.global (indt GR) Ind,
   coq.env.recursive? GR, !,
   RT = (prod IN1 ITy1 i1\ prod IN2 ITy2 i2\ prod ARN (ARTy i1 i2) ar\ (Bo i1 i2 ar)),
   coq.mk-app RInd [Pred] RIndP,
@@ -217,7 +218,8 @@ implement-mRRmK 0 (prod IN1 ITy1 i1\ prod IN2 ITy2 i2\ prod ARN (ARTy i1 i2) ar\
   @pi-decl IN1 ITy1 i1\
   @pi-decl IN2 ITy2 i2\
   @pi-decl ARN (ARTy i1 i2) ar\
-    (mRRmK-db Ind f => 
+  % to implement non uniformity change f's RT + db entry for Ind *)
+    (mRRmK-db Ind Ind f => 
       mkBranches KsS KsD KTys KTyRs ITy2 Pred KRs InjKss (Brs f)),
       std.append (Brs f) [i1,i2,ar] (IndArgs f i1 i2 ar),
       coq.mk-app RIndP (IndArgs f i1 i2 ar) (R f i1 i2 ar),
@@ -253,7 +255,7 @@ implement-mRRmK N (prod AN1 ATy1 a1\ prod AN2 ATy2 a2\ prod ARN (ARTy a1 a2) ar\
     coq.mk-app MRRMK [a1, a2, ar, am] (MRRMKS a1 a2 ar am),
     coq.typecheck (MRRMKS a1 a2 ar am) _ ok,
     ar-db a1 a2 ar ==>
-    mRRmK-db a2 (MRRMKS a1 a2 ar am) ==>
+    mRRmK-db a1 a2 (MRRMKS a1 a2 ar am) ==>
     implement-mRRmK M (Bo a1 a2 ar am) (NewKsS a1) (NewKsD a2) (NewKTys a2) (NewKTyRs a1 a2 ar) (NewPred a1 a2 ar am) (NewRInd a1 a2 ar) (NewKRs a1 a2 ar) InjKss (R a1 a2 ar am).
 
 
@@ -262,28 +264,33 @@ func main inductive, string -> list prop.
 main GR Prefix Clauses :- std.do! [
 
   coq.env.indt GR _ TyParamNo _ _ KNs KTys,
-  Ind = (global (indt GR)),
+  coq.env.global (indt GR) Ind,
+  % Ind = (global (indt GR)),
   param Ind Ind TR,
   coq.typecheck TR TRTy _,
-  mymap-def Ind IndMap,
-  mk-mR-type-mRRmK TyParamNo TRTy IndMap TR mR-db rm-db MRTy,
+  mymap-def (indt GR) IndMapGR,
+  coq.env.global IndMapGR IndMap,
+  coq.env.global {mR-def (indt GR)} MR,
+  coq.env.global {rm-def (indt GR)} RM,
+  mk-mR-type-mRRmK TyParamNo TRTy IndMap TR MR RM MRTy,
   coq.elaborate-skeleton MRTy _ MRTyE ok,
-  TR = global (indt GRR),
+  coq.env.global (indt GRR) TR,
+  % TR = global (indt GRR),
   coq.gref->id (indt GRR) Rname,
   RInductionName is Rname ^ "_ind",
   coq.locate RInductionName RInd,
   coq.prod->fun MRTyE Pred,
   coq.env.indt GRR _ _ _ _ KNRs KTyRs,
-  std.map KNs (x\ r\ r = (global (indc x))) Ks,
-  std.map KNRs (x\ r\ r = (global (indc x))) KRs,
+  std.map KNs (x\ r\ r = {coq.env.global (indc x)}) Ks,
+  std.map KNRs (x\ r\ r = {coq.env.global (indc x)}) KRs,
   for-K-get-injKs TyParamNo KNs KTys _ InjKss,
-  implement-mRRmK TyParamNo MRTyE Ks Ks KTys KTyRs Pred (global RInd) KRs InjKss R,
+  implement-mRRmK TyParamNo MRTyE Ks Ks KTys KTyRs Pred {coq.env.global RInd} KRs InjKss R,
   coq.elaborate-skeleton R MRTyE Re ok,
   Name is Prefix ^ "mRRmK",
   coq.ensure-fresh-global-id Name FName,
   coq.env.add-const FName Re MRTyE _ C,
-  I = global (indt GR),
-  Clauses = [mRRmK-done GR, (mRRmK-db I (global (const C))) ],
+  % I = global (indt GR),
+  Clauses = [mRRmK-done GR, (mRRmK-def (indt GR) (const C)) ],
   std.forall Clauses (x\
     coq.elpi.accumulate _ "derive.mRRmK.db" (clause _ _ x)
   ),

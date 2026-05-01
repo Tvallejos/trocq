@@ -14,11 +14,23 @@ Unset Uniform Inductive Parameters.
 Elpi Db derive.mR.db lp:{{
   % [ar-db A1 A2 AR] returns the relation between a type A1 and A2.
   pred ar-db i:term, i:term, o:term. 
-  % [mR-db T D] links a type T to its corresponding map in R.
-  pred mR-db i:term, o:term.
+  % [mR-db T D] links an inductive T to its corresponding map in R.
+  pred mR-def i:gref, o:gref.
+
+  pred mR-db i:term, i:term, o:term.
 
   % [mR-done T] mean T was already derived
   pred mR-done o:inductive.
+}}.
+
+#[superglobal] Elpi Accumulate derive.mR.db lp:{{ 
+
+  % refactor db dispatchers
+  mR-db I _ R :-
+    coq.env.global (indt GRI) I,
+    mR-def (indt GRI) GRR,
+    coq.env.global GRR R.
+
 }}.
 
 Elpi Command derive.mR.
@@ -33,6 +45,7 @@ Elpi Accumulate File common.
 Elpi Accumulate Db derive.mR.db.
 Elpi Accumulate File mR.
 Elpi Accumulate lp:{{
+
   main [str I] :- !, coq.locate I (indt GR),
     coq.gref->id (indt GR) Tname,
     Prefix is Tname ^ "_",
@@ -62,4 +75,3 @@ Elpi Accumulate derive lp:{{
 derivation (indt T) Prefix ff (derive "mR" (derive.mR.main T Prefix) (mR-done T)).
 
 }}.
-

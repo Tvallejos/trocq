@@ -7,8 +7,6 @@ shorten std.{split-at, length, rev, append, do!, drop-last, assert!}.
 mymap-db (app[ A1HD|A1]) (app[ A2HD |A2]) R :-
   coq.env.global (indt GR1) A1HD,
   coq.env.global (indt GR2) A2HD,
-  % A1HD = global (indt GR1),
-  % A2HD = global (indt GR2),
   coq.env.indt GR1 _ Lno1 _ _ _ _,
   coq.env.indt GR2 _ Lno2 _ _ _ _,
   {length A1} > Lno1, {length A2} > Lno2,
@@ -213,10 +211,10 @@ main GR Prefix C :- do! [
 
   % generate clause and add to the db
   mk-clause 0 Lno T T Arity [] (global (const Funct)) Clause,
-  coq.elpi.accumulate _ "derive.mymap.db" (clause _ _ (mymap-def T (global (const Funct)))),
+  coq.elpi.accumulate _ "derive.mymap.db" (clause _ _ (mymap-def (indt GR) (const Funct))),
   coq.elpi.accumulate _ "derive.mymap.db" (clause _ _ Clause),
   coq.elpi.accumulate _ "derive.mymap.db" (clause _ _ (mymap-done GR)),
-  C = [mymap-done GR,Clause, (mymap-def T (global (const Funct)))]
+  C = [mymap-done GR,Clause, (mymap-def (indt GR) (const Funct))]
 ].
   
 }

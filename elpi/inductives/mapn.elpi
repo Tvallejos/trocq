@@ -52,29 +52,32 @@ pred build-has-of i:map-class, o:gref.
 build-has-of M R :- 
   coq.locate {calc ("Map" ^ {map-class.to_string M} ^ ".BuildHas")} R.
 
-pred map-reqs i:map-class, i:term, o: list term.
+pred map-reqs i:map-class, i:gref, o: list gref.
 map-reqs map0 _ [].
 map-reqs map1 Ind [IndMap] :-
   std.assert! (mymap-def Ind IndMap) "derive.mapn: use derive.mymap before".
 map-reqs map2a Ind [MR | M1] :-
   map-reqs map1 Ind M1,
-  std.assert! (mR-db Ind MR) "derive.mapn: use derive.mR before".
+  std.assert! (mR-def Ind MR) "derive.mapn: use derive.mR before".
 map-reqs map2b Ind [RM | M1] :-
   map-reqs map1 Ind M1,
-  std.assert! (rm-db Ind RM) "derive.mapn: use derive.Rm before".
+  std.assert! (rm-def Ind RM) "derive.mapn: use derive.Rm before".
 map-reqs map3 Ind [RM | M2a] :-
   map-reqs map2a Ind M2a,
-  std.assert! (rm-db Ind RM) "derive.mapn: use derive.Rm before".
+  std.assert! (rm-def Ind RM) "derive.mapn: use derive.Rm before".
 map-reqs map4 Ind [MRRMK | M3] :-
   map-reqs map3 Ind M3,
-  std.assert! (mRRmK-db Ind MRRMK) "derive.mapn: use derive.MRRMK before".
+  std.assert! (mRRmK-def Ind MRRMK) "derive.mapn: use derive.MRRMK before".
 
 pred implement-mapM i:map-class, i:inductive, o: term.
 implement-mapM M GR RMapn :-
   coq.env.indt GR _ TyParamNo _ Arity _ _,
-  Ind = (global (indt GR)),
+  coq.env.global (indt GR) Ind,
+  % Ind = (global (indt GR)),
   std.assert! (param Ind Ind IndR) "derive.mapn: use derive.param2 before",
-  std.rev {map-reqs M Ind} Reqs,
+  std.rev {map-reqs M (indt GR)} ReqsGR,
+  std.map ReqsGR (x\ r\ r = {coq.env.global x}) Reqs,
+  
   trocq.db.map->class M UM,
   build-has-of M BH4,
   % todo: address universe polymorphism
