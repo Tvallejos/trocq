@@ -57,7 +57,7 @@ build-type-K-injector _ _ _ _ _ _ [] [] :- !.
 build-type-K-injector TyParamNo J GR Kn ArgNo KTy [PJ|PJs] [Eq|RS] :- std.do! [
   Jn is J + 1,
   duplicate-arguments TyParamNo ArgNo PJ S,
-  (craft-eq TyParamNo ArgNo J ArgNo S (global (indt GR)) (global (indc Kn)) (global (indc Kn)) {{tt}} {{tt}} {{tt}} Eq),
+  (craft-eq TyParamNo ArgNo J ArgNo S {coq.env.global (indt GR)} {coq.env.global (indc Kn)} {coq.env.global (indc Kn)} {{tt}} {{tt}} {{tt}} Eq),
   coq.typecheck Eq _ ok,
   build-type-K-injector TyParamNo Jn GR Kn ArgNo KTy PJs RS].
 
@@ -104,6 +104,10 @@ implement-injectors TyParam [ArgNo | ArgNos] [InjTys | InjTyss] [R | RS ] :-
 pred for-K-get-projectors i:int, i:list constructor, i:list term, o: list int, o:list (list term).
 for-K-get-projectors TyParamNo KNs KTys ArgsNos PJss :-
   for-K-get-KI TyParamNo KNs KTys (grk\ i\ p\ projK-db grk i p) ArgsNos PJss.
+  
+register.aux K J C R :- 
+  coq.env.global (indc K) Tm, 
+    R = (injections-db Tm J (global (const C))).
 
 func main inductive, string -> list prop.
 main GR Prefix Clauses :- std.do! [
@@ -114,8 +118,7 @@ main GR Prefix Clauses :- std.do! [
   std.map PJss (x\ r\ sigma R\ (std.map x (y\ r\ sigma Ty\ coq.typecheck y Ty _, r = Ty) R), r = R) PJTyss,
   build-types-injectors TyParamNo GR KNs ArgsNos KTys PJTyss InjTyss,
   implement-injectors TyParamNo ArgsNos InjTyss Injss,
-  Register = (k\j\c\ (injections-db (global (indc k)) j (global (const c)))),
-  name-ijs FName 1 GR KNs Injss Register Clausess,
+  name-ijs FName 1 GR KNs Injss register.aux Clausess,
   std.flatten Clausess Clauses,
   ClausesFin = [injections-done GR | Clauses], %[injections-done GR, injections GR (const C)],
   std.forall ClausesFin (x\

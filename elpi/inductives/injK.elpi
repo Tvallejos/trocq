@@ -81,7 +81,7 @@ mk-injK-types TyParamNo KNs KTys InjTyss ArgNos DestNoss :-
       duplicate-arguments TyParamNo y x R1,
       add-equalities TyParamNo y R1 R2,
       r = R2) PTy,
-  std.map KNs (x\ r\ r = global (indc x)) Ks,
+  std.map KNs (x\ r\ r = {coq.env.global (indc x)}) Ks,
   get-injectors Ks ArgNos Injss DestNoss,
   add-conclss PTy Ks TyParamNo ArgNos Injss DestNoss InjTyss.
 
@@ -177,6 +177,9 @@ implement-injK-types TyParamNo [Kn|KNs] [ArgNo|ArgNos] [InjKTys|InjKTyss] [DestN
   implement-injKs TyParamNo Kn ArgNo InjKTys DestNos R,
   implement-injK-types TyParamNo KNs ArgNos InjKTyss DestNoss RS.
 
+register.aux K J C R :- 
+  coq.env.global (indc K) Tm, 
+    R = (injectionsK-db Tm J (global (const C))).
 
 func main inductive, string -> list prop.
 main GR Prefix Clauses :- std.do! [
@@ -184,31 +187,14 @@ main GR Prefix Clauses :- std.do! [
   Name is Prefix ^ "injK",
   coq.ensure-fresh-global-id Name FName,
   coq.env.indt GR _ TyParamNo _ _ KNs KTys,
-  % Ind = (global (indt GR)),
   mk-injK-types TyParamNo KNs KTys RTys ArgNos DestNos, 
-  Register = (k\j\c\ (injectionsK-db (global (indc k)) j (global (const c)))),
   implement-injK-types TyParamNo KNs ArgNos RTys DestNos RS,
-  name-ijs FName 1 GR KNs RS Register Clausess,
+  name-ijs FName 1 GR KNs RS register.aux Clausess,
   std.flatten Clausess Clauses,
   ClausesFin = [injectionsK-done GR | Clauses],
   std.forall ClausesFin (x\
     coq.elpi.accumulate _ "derive.injectionsK.db" (clause _ _ x)
   ),
-  % coq.elaborate-skeleton MRTy _ MRTyE ok,
-  % TR = global (indt GRR),
-  % coq.gref->id (indt GRR) Rname,
-  % RInductionName is Rname ^ "_ind",
-  % coq.locate RInductionName RInd,
-  % coq.prod->fun MRTyE Pred,
-  % coq.env.indt GRR _ _ _ _ KNRs KTyRs,
-  % std.map KNs (x\ r\ r = (global (indc x))) Ks,
-  % std.map KNRs (x\ r\ r = (global (indc x))) KRs,
-  % implement-Rm TyParamNo TyParamNo MRTyE Ks Ks KTys KRs KTyRs Pred (global RInd) R,
-  % coq.elaborate-skeleton R MRTyE Re ok,
-  % Name is Prefix ^ "Rm",
-  % coq.ensure-fresh-global-id Name FName,
-  % coq.env.add-const FName Re MRTyE _ C,
-  % I = global (indt GR),
 ].
 
 }

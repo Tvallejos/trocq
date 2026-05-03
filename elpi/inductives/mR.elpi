@@ -77,8 +77,10 @@ pred build-injEKJ i:int, i:term, i:term, i:term, i:int o: term.
 build-injEKJ TyParamNo E ETy K J R :-
   injections-db K J InjKJ,
   whd ETy [] {{lib:@elpi.eq}} [_,A,B],
-  whd A [] (global (indc _)) ArgsL,
-  whd B [] (global (indc _)) ArgsR,
+  whd A [] KA ArgsL,
+  whd B [] KB ArgsR,
+  coq.env.global (indc _) KA,
+  coq.env.global (indc _) KB,
   build-injEKJ-args TyParamNo ArgsL ArgsR InjKJ E InjEKJ,
   coq.elaborate-skeleton InjEKJ _ R _.
 
@@ -165,7 +167,6 @@ main GR Prefix Clauses :- std.do! [
   Name is Prefix ^ "mR",
   coq.env.indt GR _ UnifParamNo _ _ _ _,
   coq.env.global (indt GR) Ind,
-  % Ind = (global (indt GR)),
   param Ind Ind TR,
   coq.typecheck TR TRTy _,
   mymap-def (indt GR) IndMapGR,

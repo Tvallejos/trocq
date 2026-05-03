@@ -73,7 +73,6 @@ pred implement-mapM i:map-class, i:inductive, o: term.
 implement-mapM M GR RMapn :-
   coq.env.indt GR _ TyParamNo _ Arity _ _,
   coq.env.global (indt GR) Ind,
-  % Ind = (global (indt GR)),
   std.assert! (param Ind Ind IndR) "derive.mapn: use derive.param2 before",
   std.rev {map-reqs M (indt GR)} ReqsGR,
   std.map ReqsGR (x\ r\ r = {coq.env.global x}) Reqs,
@@ -88,7 +87,7 @@ implement-mapM M GR RMapn :-
 
 func main inductive, string -> list prop.
 main GR Prefix Clauses :- std.do! [
-  Ind = (global (indt GR)),
+  coq.env.global (indt GR) Ind,
   std.fold {map-class.all-of-kind all} [] (M\ C\ C'\ sigma RMapn NameMapn FNameMapn CMapn Entry\
     implement-mapM M GR RMapn,
     NameMapn is Prefix ^ "map" ^ {map-class.to_string M},

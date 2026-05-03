@@ -200,7 +200,7 @@ mkBranches [KS|KsS] [KD|KsD] [KTy|KTys] [KTyR|KTyRs] ITyTy Goal [KR|KRs] [InjKs|
 
 pred for-K-get-injKs i:int, i:list constructor, i:list term, o: list int, o:list (list term).
 for-K-get-injKs TyParamNo KNs KTys ArgsNos InjKss :-
-  F = (grk\ i\ p\ injectionsK-db (global (indc grk)) i p),
+  F = (grk\ i\ p\ injectionsK-db {coq.env.global (indc grk)} i p),
   for-K-get-KI TyParamNo KNs KTys F ArgsNos InjKss.
 
 pred implement-mRRmK i:int, i:term, i:list term, i:list term, i:list term, i:list term, i:term, i:term, i:list term, i:list (list term), o:term.
@@ -265,7 +265,6 @@ main GR Prefix Clauses :- std.do! [
 
   coq.env.indt GR _ TyParamNo _ _ KNs KTys,
   coq.env.global (indt GR) Ind,
-  % Ind = (global (indt GR)),
   param Ind Ind TR,
   coq.typecheck TR TRTy _,
   mymap-def (indt GR) IndMapGR,
@@ -275,7 +274,6 @@ main GR Prefix Clauses :- std.do! [
   mk-mR-type-mRRmK TyParamNo TRTy IndMap TR MR RM MRTy,
   coq.elaborate-skeleton MRTy _ MRTyE ok,
   coq.env.global (indt GRR) TR,
-  % TR = global (indt GRR),
   coq.gref->id (indt GRR) Rname,
   RInductionName is Rname ^ "_ind",
   coq.locate RInductionName RInd,
@@ -289,7 +287,6 @@ main GR Prefix Clauses :- std.do! [
   Name is Prefix ^ "mRRmK",
   coq.ensure-fresh-global-id Name FName,
   coq.env.add-const FName Re MRTyE _ C,
-  % I = global (indt GR),
   Clauses = [mRRmK-done GR, (mRRmK-def (indt GR) (const C)) ],
   std.forall Clauses (x\
     coq.elpi.accumulate _ "derive.mRRmK.db" (clause _ _ x)

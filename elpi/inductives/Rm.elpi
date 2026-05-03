@@ -19,9 +19,7 @@ pred build-Rm i:term, i:term, o:term.
 build-Rm STy ITyTy R :-
   coq.safe-dest-app STy Ind Args1, 
   coq.safe-dest-app ITyTy Ind2 Args2, 
-  % coq.global.env IndGR Ind,
   rm-db Ind _ RM,
-  %todo continue from here!!!
   if (Ind = Ind2)
     (R = RM)
     (build-Rm-args Args1 Args2 RM RSkel, 
@@ -96,7 +94,6 @@ implement-Rm 0 _TyParamNo (prod IN1 ITy1 i1\ prod IN2 ITy2 i2\ prod ARN (ARTy i1
   @pi-decl IN1 ITy1 i1\
   @pi-decl IN2 ITy2 i2\
   @pi-decl ARN (ARTy i1 i2) ar\
-    % coq.term->gref f FGR,
     (rm-db Ind Ind f => 
       mkBranches KsS KsD KTys KTyRs ITy2 Pred (Brs f)),
     std.append (Brs f) [i1,i2,ar] (IndArgs f i1 i2 ar),
@@ -139,16 +136,12 @@ main GR Prefix Clauses :- std.do! [
 
   coq.env.indt GR _ TyParamNo _ _ KNs KTys,
   coq.env.global (indt GR) Ind,
-  % Ind = (global (indt GR)),
   std.assert! (paramR Ind Ind TR) "derive.Rm: use derive.param2 before",
-  % param Ind Ind TR,
   coq.typecheck TR TRTy _,
-  % mymap-def Ind IndMap,
   std.assert! (mymap-def (indt GR) IndMapGR) "derive.Rm: use derive.mymap before",
   mk-mR-type-Rm TyParamNo TRTy {coq.env.global IndMapGR} {{ Type }} TR MRTy,
   std.assert-ok! (coq.elaborate-skeleton MRTy _ MRTyE) "derive.Rm generates illtyped type",
   coq.env.global (indt GRR) TR,
-  % TR = global (indt GRR),
   coq.gref->id (indt GRR) Rname,
   RInductionName is Rname ^ "_ind",
   % RInductionName is Rname ^ "_rect",
@@ -156,14 +149,11 @@ main GR Prefix Clauses :- std.do! [
   coq.prod->fun MRTyE Pred,
   coq.env.indt GRR _ _ _ _ _ KTyRs,
   std.map KNs (x\ r\ r = {coq.env.global (indc x)}) Ks,
-  % std.map KNs (x\ r\ r = {coq.env.global (indc x)}) Ks,
   implement-Rm TyParamNo TyParamNo MRTyE Ks Ks KTys KTyRs Pred {coq.env.global RInd} R,
-  % coq.elaborate-skeleton R MRTyE Re ok,
   std.assert-ok! (coq.elaborate-skeleton R TyE Re) "derive.Rm generates illtyped term",
   Name is Prefix ^ "Rm",
   coq.ensure-fresh-global-id Name FName,
   coq.env.add-const FName Re TyE _ C,
-  % I = global (indt GR),
   Clauses = [rm-done GR, rm-def (indt GR) (const C)],
   std.forall Clauses (x\
     coq.elpi.accumulate _ "derive.Rm.db" (clause _ _ x)
