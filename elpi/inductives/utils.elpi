@@ -17,6 +17,14 @@ name-prefix N P R :-
   S is P ^ NS,
   coq.string->name S R.
 
+pred elim-into-path-suffix o:string.
+elim-into-path-suffix Suff :-
+  (indt Eq) = {{:gref @lib:trocq.paths}},
+  coq.env.indt Eq _ _ _ (prod _ _ _\ (prod _ _ _\ (prod _ _ _\ sort S))) _ _,
+  if (S = prop)
+    (Suff = "_ind")
+    (Suff = "_rect").
+
 % given TyParam ArgNo and T, 
 % duplicate-argument skips TyParam products, 
 % then for the first ArgNo products adds another product expecting an argument of the same Type, 

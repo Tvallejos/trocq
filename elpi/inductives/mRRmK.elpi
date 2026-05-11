@@ -1,5 +1,5 @@
 shorten derive.common-algo.{mk-mR-type-mRRmK}.
-shorten derive.algo-utils.{mk-chain, for-K-get-KI,type-of-args, whd-fuel, iota-step, invert-eqs, rewrite-with}.
+shorten derive.algo-utils.{mk-chain, for-K-get-KI,type-of-args, whd-fuel, iota-step, invert-eqs, rewrite-with, elim-into-path-suffix}.
 
 namespace derive.mRRmK {
 
@@ -275,7 +275,8 @@ main GR Prefix Clauses :- std.do! [
   coq.elaborate-skeleton MRTy _ MRTyE ok,
   coq.env.global (indt GRR) TR,
   coq.gref->id (indt GRR) Rname,
-  RInductionName is Rname ^ "_ind",
+  elim-into-path-suffix Suff,
+  RInductionName is Rname ^ Suff,
   coq.locate RInductionName RInd,
   coq.prod->fun MRTyE Pred,
   coq.env.indt GRR _ _ _ _ KNRs KTyRs,

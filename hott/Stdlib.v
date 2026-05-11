@@ -19,6 +19,7 @@ Module HoTTNotations.
   (* Stub for compatibility with stdlib version  *)
 End HoTTNotations.
 
+Register paths as trocq.paths.
 Register concat as trocq.concat.
 Register idpath as trocq.idpath.
 Register inverse as trocq.inverse.

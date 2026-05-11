@@ -1,5 +1,5 @@
 shorten derive.common-algo.{mk-mR-type-Rm}.
-shorten derive.algo-utils.{mk-chain, type-of-args}.
+shorten derive.algo-utils.{mk-chain, type-of-args, elim-into-path-suffix}.
 
 namespace derive.Rm {
 
@@ -143,7 +143,8 @@ main GR Prefix Clauses :- std.do! [
   std.assert-ok! (coq.elaborate-skeleton MRTy _ MRTyE) "derive.Rm generates illtyped type",
   coq.env.global (indt GRR) TR,
   coq.gref->id (indt GRR) Rname,
-  RInductionName is Rname ^ "_ind",
+  elim-into-path-suffix Suff,
+  RInductionName is Rname ^ Suff,
   % RInductionName is Rname ^ "_rect",
   coq.locate RInductionName RInd,
   coq.prod->fun MRTyE Pred,
