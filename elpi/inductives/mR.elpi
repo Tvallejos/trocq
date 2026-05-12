@@ -76,7 +76,7 @@ app-interleave F [A|Args1] [B|Args2] R :-
 pred build-injEKJ i:int, i:term, i:term, i:term, i:int o: term.
 build-injEKJ TyParamNo E ETy K J R :-
   injections-db K J InjKJ,
-  whd ETy [] {{lib:@elpi.eq}} [_,A,B],
+  whd ETy [] {{lib:@trocq.paths}} [_,A,B],
   whd A [] KA ArgsL,
   whd B [] KB ArgsR,
   coq.env.global (indc _) KA,
@@ -110,11 +110,13 @@ apply-indR N J K KR [Ty1|TyArgs1] Args1 ArgTys1 [Ty2|TyArgs2] Args2 ArgTys2 LHS 
 pred matrix 
     i:int, i: term, i:list term, i:list term, i:list term, i:term, i:list term, i:list term, i:list term, 
     i:term, i:term, i:term, o:term.
-matrix TyParamNo K1 TyArgs1 KArgs1 ArgTys1 K1 TyArgs2 KArgs2 ArgTys2 E ETy _ R :-
+matrix TyParamNo K1 TyArgs1 KArgs1 ArgTys1 K2 TyArgs2 KArgs2 ArgTys2 E ETy _ R :-
+  coq.env.global (indc K) K1,
+  coq.env.global (indc K) K2,
   !,
   param K1 K1 KR,
   coq.mk-app K1 {std.append TyArgs1 KArgs1} LHS,
-  coq.mk-app K1 {std.append TyArgs2 KArgs2} RHS,
+  coq.mk-app K2 {std.append TyArgs2 KArgs2} RHS,
   apply-indR TyParamNo 1 K1 KR TyArgs1 KArgs1 ArgTys1 TyArgs2 KArgs2 ArgTys2 LHS RHS E ETy TyParamNo R.
 
 matrix _ _ _ _ _ _ _ _ _ E ETy G R :- !,

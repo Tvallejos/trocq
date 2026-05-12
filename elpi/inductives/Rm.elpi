@@ -38,7 +38,7 @@ pred process-args i:term, i:term, i:int, i:int, i:term, i:term, i:list term, i:l
 process-args Ksrc Kdest 0 TyArgsNo _ Goal TySrc TyDest ITyTy R:- 
   coq.mk-app Goal [Ksrc, Kdest, {{ Type }}] EqTy, %discards the relation between Ksrc and Kdest, we want the equality.
   % todo: change elpi.eq for trocq.idpath
-  whd EqTy [] {{lib:@elpi.eq}} [ITyTy,MapA,B],
+  whd EqTy [] {{lib:@trocq.paths }} [ITyTy,MapA,B],
   whd MapA [] K TySrcMappedArgs,
   coq.env.global (indc _) K, !,
   whd B [] KDest TyDestArgs,
