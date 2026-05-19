@@ -22,8 +22,8 @@ Return the processed Types */
 pred craft-eq i:int, i:int, i:int, i:int, i:term, i:term, i:term, i:term, i:term, i:term, i:term, o:term.
 craft-eq 0 0 _ _ _ EqTy Left Right ConclEqTy ConclL ConclR R:-  !,
   %todo use trocq.idpath
-  coq.mk-app {{lib:@elpi.eq}} [EqTy, Left, Right] AETy,
-  coq.mk-app {{lib:@elpi.eq}} [ConclEqTy, ConclL, ConclR] C,
+  coq.mk-app {{lib:@trocq.paths}} [EqTy, Left, Right] AETy,
+  coq.mk-app {{lib:@trocq.paths}} [ConclEqTy, ConclL, ConclR] C,
   R = {{ forall (e : lp:AETy), lp:C }}.
 
 craft-eq 0 ArgNo J Max (prod N1 T x\ prod N2 T y\ (Bo x y)) EqTy Left Right ConclEq ConclL ConclR (prod N1 T x\ prod N2 T y\ (S x y)) :- !,
@@ -58,7 +58,7 @@ build-type-K-injector TyParamNo J GR Kn ArgNo KTy [PJ|PJs] [Eq|RS] :- std.do! [
   Jn is J + 1,
   duplicate-arguments TyParamNo ArgNo PJ S,
   (craft-eq TyParamNo ArgNo J ArgNo S {coq.env.global (indt GR)} {coq.env.global (indc Kn)} {coq.env.global (indc Kn)} {{tt}} {{tt}} {{tt}} Eq),
-  coq.typecheck Eq _ ok,
+  (@keepunivs! => coq.typecheck Eq _ ok),
   build-type-K-injector TyParamNo Jn GR Kn ArgNo KTy PJs RS].
 
 pred build-types-injectors i:int, i: inductive, i:list constructor, i: list int, i:list (term), i:list (list term), o:list (list term).
@@ -117,7 +117,7 @@ main GR Prefix Clauses :- std.do! [
   coq.ensure-fresh-global-id Name FName,
   coq.env.indt GR _ TyParamNo _ _ KNs KTys,
   for-K-get-projectors TyParamNo KNs KTys ArgsNos PJss,
-  std.map PJss (x\ r\ sigma R\ (std.map x (y\ r\ sigma Ty\ coq.typecheck y Ty _, r = Ty) R), r = R) PJTyss,
+  std.map PJss (x\ r\ sigma R\ (std.map x (y\ r\ sigma Ty\ (@keepunivs! => coq.typecheck y Ty ok), r = Ty) R), r = R) PJTyss,
   build-types-injectors TyParamNo GR KNs ArgsNos KTys PJTyss InjTyss,
   implement-injectors TyParamNo ArgsNos InjTyss Injss,
   name-ijs FName 1 GR KNs Injss register.aux Clausess,

@@ -23,7 +23,7 @@ build-Rm STy ITyTy R :-
   if (Ind = Ind2)
     (R = RM)
     (build-Rm-args Args1 Args2 RM RSkel,
-     coq.elaborate-skeleton RSkel _ R ok).
+     (@keepunivs! => coq.elaborate-skeleton RSkel _ R ok)).
 
 pred mk-equalities i:list term, i:term, i: list term, i: list term, o:list term.
 mk-equalities [] _ [] [] [].
@@ -100,7 +100,7 @@ implement-Rm 0 _TyParamNo (prod IN1 ITy1 i1\ prod IN2 ITy2 i2\ prod ARN (ARTy i1
     coq.mk-app RIndP (IndArgs f i1 i2 ar) (R f i1 i2 ar).
 implement-Rm 0 _TyParamNo (prod IN1 ITy1 i1\ prod IN2 ITy2 i2\ prod ARN (ARTy i1 i2) _) KsS KsD KTys KTyRs Pred RInd
             (fun IN1 ITy1 i1\ fun IN2 ITy2 i2\ fun ARN (ARTy i1 i2) ar\ (R i1 i2 ar)) :-
-  coq.mk-app RInd [Pred] RIndP,
+  coq.mk-app RInd [Pred] RIndP, !,
   @pi-decl IN1 ITy1 i1\
   @pi-decl IN2 ITy2 i2\
   @pi-decl ARN (ARTy i1 i2) ar\
@@ -117,7 +117,7 @@ implement-Rm N TyParamNo (prod AN1 ATy1 a1\ prod AN2 ATy2 a2\ prod ARN (ARTy a1 
 
     coq.mk-app Pred [a1,a2,ar,am] (NewPred a1 a2 ar am),
     coq.mk-app RInd [a1,a2,ar] (NewRIndSkel a1 a2 ar),
-    coq.elaborate-skeleton (NewRIndSkel a1 a2 ar) _ (NewRInd a1 a2 ar) ok,
+    (@keepunivs! => coq.elaborate-skeleton (NewRIndSkel a1 a2 ar) _ (NewRInd a1 a2 ar) ok),
 
     std.map KsS (x\ r\ sigma TMP\ coq.mk-app x [a1] TMP, r = TMP) (NewKsS a1),
     std.map KsD (x\ r\ sigma TMP\ coq.mk-app x [a2] TMP, r = TMP) (NewKsD a2),
@@ -140,12 +140,11 @@ main GR Prefix Clauses :- std.do! [
   coq.typecheck TR TRTy _,
   std.assert! (mymap-def (indt GR) IndMapGR) "derive.Rm: use derive.mymap before",
   mk-mR-type-Rm TyParamNo TRTy {coq.env.global IndMapGR} {{ Type }} TR MRTy,
-  std.assert-ok! (coq.elaborate-skeleton MRTy _ MRTyE) "derive.Rm generates illtyped type",
+  (@keepunivs! => std.assert-ok! (coq.elaborate-skeleton MRTy _ MRTyE) "derive.Rm generates illtyped type"),
   coq.env.global (indt GRR) TR,
   coq.gref->id (indt GRR) Rname,
-  elim-into-path-suffix Suff,
+  elim-into-path-suffix Rname Suff,
   RInductionName is Rname ^ Suff,
-  % RInductionName is Rname ^ "_rect",
   coq.locate RInductionName RInd,
   coq.prod->fun MRTyE Pred,
   coq.env.indt GRR _ _ _ _ _ KTyRs,

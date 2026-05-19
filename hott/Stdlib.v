@@ -26,3 +26,6 @@ Register inverse as trocq.inverse.
 Register paths_ind as trocq.paths_ind.
 Register exist as trocq.exist.
 Register ap as trocq.ap.
+
+Definition paths_nondep (A : Type) (x : A) (P : A -> Type) : P x -> forall y : A, x = y -> P y :=
+  fun w y e=> paths_rect A x (fun a0 e => P a0) w y e.

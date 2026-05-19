@@ -17,13 +17,14 @@ name-prefix N P R :-
   S is P ^ NS,
   coq.string->name S R.
 
-pred elim-into-path-suffix o:string.
-elim-into-path-suffix Suff :-
+pred elim-into-path-suffix i:string, o:string.
+elim-into-path-suffix Id Suff :-
   (indt Eq) = {{:gref @lib:trocq.paths}},
-  coq.env.indt Eq _ _ _ (prod _ _ _\ (prod _ _ _\ (prod _ _ _\ sort S))) _ _,
+  if ( Id = "paths") (Suff = "_nondep")
+  (coq.env.indt Eq _ _ _ (prod _ _ _\ (prod _ _ _\ (prod _ _ _\ sort S))) _ _,
   if (S = prop)
     (Suff = "_ind")
-    (Suff = "_rect").
+    (Suff = "_rect")).
 
 % given TyParam ArgNo and T,
 % duplicate-argument skips TyParam products,
@@ -100,7 +101,8 @@ name-ij _ _ _ _ _ [] _ [].
 name-ij FName I J GR Kn [InjTy|InjTyss] F ClausesR :-
   Jn is J + 1,
   NameIJ is {std.any->string FName} ^ {std.any->string I} ^ {std.any->string J},
-  (@dropunivs! => coq.env.add-const NameIJ InjTy _ _ C),
+  % if declared with dropunivs recursive type polymorphic arguments fail to define injections
+  (@keepunivs! => coq.env.add-const NameIJ InjTy _ _ C),
   (F Kn J C Clauses),
   name-ij FName I Jn GR Kn InjTyss F ClausesRec,
   std.append Clauses ClausesRec ClausesR.
@@ -183,9 +185,15 @@ pred rewrite-with i:list term, i:list term, i:term, o:term.
 rewrite-with [] [] End End.
 rewrite-with [Eq|Eqs] [Pat|Pats] End R :-
   (pi rest\
-    (T rest) = {{ lib:@trocq.paths_ind _ _ lp:Pat lp:rest _ lp:Eq }}),
+
+  elim-into-path-suffix "paths" Suff,
+  PathIndName is {coq.gref->id {{:gref @lib:trocq.paths }}} ^ Suff,
+  coq.locate PathIndName PathIndGR,
+  coq.env.global PathIndGR PathInd,
+    (T rest) = {{ lp:PathInd _ _ lp:Pat lp:rest _ lp:Eq }}),
   rewrite-with Eqs Pats End RestSkel,
   (@keepunivs! => coq.elaborate-skeleton RestSkel _ Rest ok),
-  R = (T Rest).
+  RSkel = (T Rest),
+  (@keepunivs! => coq.elaborate-skeleton RSkel _ R Err).
 
 }

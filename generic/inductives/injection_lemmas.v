@@ -9,6 +9,7 @@ From elpi.apps Require Export derive.projK.
 From Trocq Require Export DeriveLib.
 
 Unset Uniform Inductive Parameters. 
+Unset Universe Minimization ToSet.
 Elpi Db derive.injections.db lp:{{
 
   % [injections I K ILs] links I, 

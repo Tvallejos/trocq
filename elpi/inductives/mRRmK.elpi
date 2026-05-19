@@ -276,7 +276,7 @@ main GR Prefix Clauses :- std.do! [
   (@keepunivs! => coq.elaborate-skeleton MRTy _ MRTyE ok),
   coq.env.global (indt GRR) TR,
   coq.gref->id (indt GRR) Rname,
-  elim-into-path-suffix Suff,
+  elim-into-path-suffix Rname Suff,
   RInductionName is Rname ^ Suff,
   coq.locate RInductionName RInd,
   coq.prod->fun MRTyE Pred,
