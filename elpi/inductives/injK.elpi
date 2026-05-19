@@ -40,7 +40,7 @@ add-concl 0 ArgNo ArgNo _ Injtor _ RHS K SrcArgs_R DestArgs_R Eqs_R R :-
   mk-chain SrcArgs DestArgs DestArgsTy K Eqs ITyTy Ind Chain,
   coq.mk-app Injtor [Chain] LHS,
   coq.mk-app {{lib:@trocq.paths}} [{{ _ }}, LHS, RHS] RSkel,
-  coq.elaborate-skeleton RSkel _ R ok.
+  @keepunivs! => coq.elaborate-skeleton RSkel _ R ok.
 add-concl 0 M ArgNo (prod AN1 ATy a1\ prod AN2 ATy a2\ prod EN (ETy a1 a2) e\ (Bo a1 a2 e)) Injtor DestPathNo RHS K SrcArgs DestArgs Eqs
                   (prod AN1 ATy a1\ prod AN2 ATy a2\ prod EN (ETy a1 a2) e\ (R a1 a2 e)) :-
   !,
@@ -107,15 +107,16 @@ mk-pred Curr I ArgNo Pred T P [A1|Args1] [A2|Args2] [_A2Ty|TyArgs2] [Path|Paths]
 
 pred mk-preds i:int, i:int, i:list term, i:list term, i:list term, i:list term, i:list term, i:list term, o:list term.
 mk-preds _ _ [] _ _ _ _ _ [].
-mk-preds I ArgNo [P|Preds] Args1 Args2 TyArgs2 Paths TyPaths [ fun `t` Ty t\ fun `p` (PatTy t) p\ (R t p) | RS ] :-
+mk-preds I ArgNo [P|Preds] Args1 Args2 TyArgs2 Paths TyPaths [ RP | RS ] :-
   J is I + 1,
-  std.nth I TyArgs2 Ty,
   std.nth I TyPaths PTy,
   whd PTy [] {{lib:@trocq.paths}} [T,A,_],
-  @pi-decl `t` Ty t\
+  @pi-decl `t` T t\
     coq.mk-app {{lib:@trocq.paths}} [T,A,t] (PatTy t),
   @pi-decl `p` (PatTy t) p\
     mk-pred 0 I ArgNo P t p Args1 Args2 TyArgs2 Paths TyPaths (R t p),
+  RPSkel = (fun `t` T t\ fun `p` (PatTy t) p\ (R t p)),
+  (@keepunivs! => coq.elaborate-skeleton RPSkel _ RP ok),
   mk-preds J ArgNo Preds Args1 Args2 TyArgs2 Paths TyPaths RS.
 
 pred iter-convs i:list term, i:list term, i:list term, i:list term, i:list term, i:term, o:term.
@@ -127,7 +128,7 @@ iter-convs [Ty|Tys] [A1|Args1] [A2|Args2] [Path|Paths] [Pred|Preds] End R :-
 
 
 pred implement-injK i:int, i:int, i:int, i:int, i:term, i:term, i:list term, i:list term, i:list term, i:list term, i:list term, i:list term, o:term.
-implement-injK 0 0 ArgNo DestNo _ Pred TyParamsR Args1R Args2R TyArgs2R PathsR TyPathsR R :-
+implement-injK 0 0 ArgNo DestNo _ Pred TyParamsR Args1R Args2R TyArgs2R PathsR TyPathsR R :- !,
   std.rev TyParamsR TyParams,
   std.rev Args1R Args1,
   std.rev Args2R Args2,
@@ -142,10 +143,10 @@ implement-injK 0 0 ArgNo DestNo _ Pred TyParamsR Args1R Args2R TyArgs2R PathsR T
   std.nth DestNo Args1 A1,
   std.nth DestNo TyArgs2 Ty,
   EndArg = {{ lib:@trocq.idpath lp:Ty lp:A1}},
-  coq.typecheck EndArg EndTy ok,
+  (@keepunivs! => coq.typecheck EndArg EndTy ok),
   End = {{ lib:@trocq.idpath lp:EndTy lp:EndArg}},
   iter-convs TyArgs2 Args1 Args2 Paths RPreds End RSkel,
-  @keepunivs! => coq.elaborate-skeleton RSkel _ R ok.
+  (@keepunivs! => coq.elaborate-skeleton RSkel _ R ok).
 
 % build the stuff.
 % reverse args
@@ -167,7 +168,8 @@ pred implement-injKs i:int, i:constructor, i:int, i:list term, i:list int, o:lis
 implement-injKs _ _ _ [] [] [].
 implement-injKs TyParamNo _ ArgNo [InjKTy|InjKTys] [DestNo | DestNos] [R| RS] :-
   coq.prod->fun InjKTy Pred,
-  implement-injK TyParamNo ArgNo ArgNo DestNo InjKTy Pred [] [] [] [] [] [] R,
+  implement-injK TyParamNo ArgNo ArgNo DestNo InjKTy Pred [] [] [] [] [] [] RSkel,
+  coq.elaborate-skeleton RSkel _ R ok,
   implement-injKs TyParamNo _ ArgNo InjKTys DestNos RS.
 
 % todo rm constructors as arg

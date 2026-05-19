@@ -53,7 +53,7 @@ mk-aps-etas [] _ [] [] [] [] [].
 mk-aps-etas [DTy|DestTys] ITyTy [Eta|Etas] [SA|SrcArgs] [DA|DestArgs] [Eq|Eqs] [RE | RS] :-
   Ap = {{ lib:@trocq.ap }},
   coq.mk-app Ap [DTy,ITyTy,Eta,SA,DA,Eq] R,
-  coq.elaborate-skeleton R _ RE ok,
+  (@keepunivs! => coq.elaborate-skeleton R _ RE ok),
   mk-aps-etas DestTys ITyTy Etas SrcArgs DestArgs Eqs RS.
 
 % K comes with type arguments already applied.
@@ -92,7 +92,7 @@ mk-chain SrcArgs DestArgs DestArgsTy K Eqs ITyTy RHS R :-
   mk-etas SrcArgs DestArgs DestArgsTy K REtas,
   mk-aps-etas DestArgsTy ITyTy REtas SrcArgs DestArgs Eqs Raps,
   compose-path Raps {{ lib:@trocq.idpath lp:ITyTy lp:RHS }} ITyTy RSkel,
-  coq.elaborate-skeleton RSkel _ R ok.
+  @keepunivs! => coq.elaborate-skeleton RSkel _ R ok.
 
 % pred name-ij i:string, i:int, i:int, i:inductive, i:constructor, i:list term, i: constructor -> int -> constant -> prop, o:list prop.
 pred name-ij i:string, i:int, i:int, i:inductive, i:constructor, i:list term, i: (pred i:constructor, i:int, i:constant, o:list prop), o:list prop.
@@ -100,7 +100,7 @@ name-ij _ _ _ _ _ [] _ [].
 name-ij FName I J GR Kn [InjTy|InjTyss] F ClausesR :-
   Jn is J + 1,
   NameIJ is {std.any->string FName} ^ {std.any->string I} ^ {std.any->string J},
-  (@keepunivs! => coq.env.add-const NameIJ InjTy _ _ C),
+  (@dropunivs! => coq.env.add-const NameIJ InjTy _ _ C),
   (F Kn J C Clauses),
   name-ij FName I Jn GR Kn InjTyss F ClausesRec,
   std.append Clauses ClausesRec ClausesR.
@@ -174,7 +174,7 @@ iota-step (match A _ L) C X XC :- whd-indc A GR KA, !,
 pred invert-eqs i:list term, o:list term.
 invert-eqs Eqs IEqs :-
   std.map Eqs (x\r\ sigma Skel TMP Err\ Skel = {{ lib:@trocq.inverse _ _ _ lp:x}},
-              coq.elaborate-skeleton Skel _ TMP ok,
+              (@keepunivs! => coq.elaborate-skeleton Skel _ TMP ok),
               r = TMP
               ) IEqs.
 
@@ -185,7 +185,7 @@ rewrite-with [Eq|Eqs] [Pat|Pats] End R :-
   (pi rest\
     (T rest) = {{ lib:@trocq.paths_ind _ _ lp:Pat lp:rest _ lp:Eq }}),
   rewrite-with Eqs Pats End RestSkel,
-  coq.elaborate-skeleton RestSkel _ Rest ok,
+  (@keepunivs! => coq.elaborate-skeleton RestSkel _ Rest ok),
   R = (T Rest).
 
 }

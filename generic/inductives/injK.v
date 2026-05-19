@@ -7,13 +7,15 @@ From Trocq Require Export injection_lemmas.
 From Trocq Require Import DeriveLib HoTTNotations Stdlib Hierarchy.
 
 Unset Uniform Inductive Parameters. 
+Unset Universe Minimization ToSet.
 
+Unset Universe Polymorphism.
 Definition conv (A : Type) (x y : A) (p: x = y) 
     (P : forall x0 : A, x = x0 -> Type) (P0 : P x idpath) :=
   match p as p0 in _ = t return (P t p0)
    with idpath => P0 end.
-
 Register conv as trocq.conv.
+Set Universe Polymorphism.
 
 Elpi Db derive.injectionsK.db lp:{{
 

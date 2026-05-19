@@ -92,7 +92,7 @@ implement-K-injectors _ _ _ [] [].
 implement-K-injectors TyParam J ArgNo [InjTy | InjTys] [R | RS] :-
   Jn is J + 1,
   (implement-K-injector-J TyParam J ArgNo TyParam InjTy RSkel),
-  coq.elaborate-skeleton RSkel _ R ok,
+  (@keepunivs! => coq.elaborate-skeleton RSkel _ R ok),
   implement-K-injectors TyParam Jn ArgNo InjTys RS.
 
 pred implement-injectors i:int, i:list int, i:list (list term), o:list (list term).
