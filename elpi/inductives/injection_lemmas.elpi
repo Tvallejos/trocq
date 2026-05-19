@@ -2,18 +2,18 @@ shorten derive.algo-utils.{duplicate-arguments, count-args, name-ijs, for-K-get-
 
 namespace derive.injections {
 
-/* for all projectors of type forall Args T, ret 
+/* for all projectors of type forall Args T, ret
 generate
 
 forall Args1-> Args2-> (e : Kj args->1 = Kj args->2) argj
 
-Take an inductive Ind, 
+Take an inductive Ind,
 take its constructors global references,
 for each global reference GRK,
 Compute the number of arguments J for each GRK,
-for each ArgNumber in 1 to J+1, 
-get the Projector GRK ArgNumber, 
-Get the type ProjType, forall ArgTys Args Ind, ret 
+for each ArgNumber in 1 to J+1,
+get the Projector GRK ArgNumber,
+Get the type ProjType, forall ArgTys Args Ind, ret
 Return the processed Types */
 
 % TyParam, ArgNo, F, Type of the equality, Left HS, Right HS
@@ -23,8 +23,8 @@ pred craft-eq i:int, i:int, i:int, i:int, i:term, i:term, i:term, i:term, i:term
 craft-eq 0 0 _ _ _ EqTy Left Right ConclEqTy ConclL ConclR R:-  !,
   %todo use trocq.idpath
   coq.mk-app {{lib:@elpi.eq}} [EqTy, Left, Right] AETy,
-  coq.mk-app {{lib:@elpi.eq}} [ConclEqTy, ConclL, ConclR] C, 
-  R = {{ forall (e : lp:AETy), lp:C }}. 
+  coq.mk-app {{lib:@elpi.eq}} [ConclEqTy, ConclL, ConclR] C,
+  R = {{ forall (e : lp:AETy), lp:C }}.
 
 craft-eq 0 ArgNo J Max (prod N1 T x\ prod N2 T y\ (Bo x y)) EqTy Left Right ConclEq ConclL ConclR (prod N1 T x\ prod N2 T y\ (S x y)) :- !,
   M is ArgNo - 1,
@@ -33,10 +33,10 @@ craft-eq 0 ArgNo J Max (prod N1 T x\ prod N2 T y\ (Bo x y)) EqTy Left Right Conc
   @pi-decl N2 T y\
   sigma NewLeft NewRight NewConclEq NewConclL NewConclR\
     (if (J? = J)
-        (NewConclEq = T, 
+        (NewConclEq = T,
          NewConclL = x,
          NewConclR = y)
-        (NewConclEq = ConclEq, 
+        (NewConclEq = ConclEq,
          NewConclL = ConclL,
          NewConclR = ConclR)),
     coq.mk-app Left [x] NewLeft,
@@ -45,7 +45,7 @@ craft-eq 0 ArgNo J Max (prod N1 T x\ prod N2 T y\ (Bo x y)) EqTy Left Right Conc
 
 craft-eq TyParam ArgNo J Max (prod N T Bo) EqTy Left Right CE CL CR (prod N T x\ S x) :- !,
   M is TyParam - 1,
-  @pi-decl N T x\  
+  @pi-decl N T x\
   sigma NewEqTy NewLeft NewRight\
     coq.mk-app EqTy [x] NewEqTy,
     coq.mk-app Left [x] NewLeft,
@@ -63,7 +63,7 @@ build-type-K-injector TyParamNo J GR Kn ArgNo KTy [PJ|PJs] [Eq|RS] :- std.do! [
 
 pred build-types-injectors i:int, i: inductive, i:list constructor, i: list int, i:list (term), i:list (list term), o:list (list term).
 build-types-injectors _ _ [] [] [] [] [] :- !.
-build-types-injectors TyParamNo GR [Kn|KNs] [ArgNo|ArgsNos] [KTy|KTys] [PJs|PJss] [R|RS] :- 
+build-types-injectors TyParamNo GR [Kn|KNs] [ArgNo|ArgsNos] [KTy|KTys] [PJs|PJss] [R|RS] :-
   build-type-K-injector TyParamNo 1 GR Kn ArgNo KTy PJs R,
   build-types-injectors TyParamNo GR KNs ArgsNos KTys PJss RS.
 
@@ -86,13 +86,13 @@ implement-K-injector-J ParamNo J ArgNo TyParam (prod TyArg T t\ (Bo t)) (fun TyA
   ParamNon is ParamNo - 1,
   @pi-decl TyArg T t\
     implement-K-injector-J ParamNon J ArgNo TyParam (Bo t) (R t).
-  
+
 pred implement-K-injectors i:int, i:int, i:int, i:list term, o:list term.
 implement-K-injectors _ _ _ [] [].
 implement-K-injectors TyParam J ArgNo [InjTy | InjTys] [R | RS] :-
   Jn is J + 1,
-  (implement-K-injector-J TyParam J ArgNo TyParam InjTy R), 
-  coq.typecheck R InjTy ok,
+  (implement-K-injector-J TyParam J ArgNo TyParam InjTy RSkel),
+  coq.elaborate-skeleton RSkel _ R ok,
   implement-K-injectors TyParam Jn ArgNo InjTys RS.
 
 pred implement-injectors i:int, i:list int, i:list (list term), o:list (list term).
@@ -104,10 +104,12 @@ implement-injectors TyParam [ArgNo | ArgNos] [InjTys | InjTyss] [R | RS ] :-
 pred for-K-get-projectors i:int, i:list constructor, i:list term, o: list int, o:list (list term).
 for-K-get-projectors TyParamNo KNs KTys ArgsNos PJss :-
   for-K-get-KI TyParamNo KNs KTys (grk\ i\ p\ projK-db grk i p) ArgsNos PJss.
-  
-register.aux K J C R :- 
-  coq.env.global (indc K) Tm, 
-    R = (injections-db Tm J (global (const C))).
+
+register-def.aux K J C R :-
+  coq.env.global (indc K) _,
+    R = (injections-def (indc K) J (const C)).
+register.aux K J C [R1] :-
+  register-def.aux K J C R1.
 
 func main inductive, string -> list prop.
 main GR Prefix Clauses :- std.do! [

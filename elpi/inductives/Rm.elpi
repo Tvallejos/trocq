@@ -17,12 +17,12 @@ build-Rm-args [A1|Args1] [A2|Args2] T R :-
 
 pred build-Rm i:term, i:term, o:term.
 build-Rm STy ITyTy R :-
-  coq.safe-dest-app STy Ind Args1, 
-  coq.safe-dest-app ITyTy Ind2 Args2, 
+  coq.safe-dest-app STy Ind Args1,
+  coq.safe-dest-app ITyTy Ind2 Args2,
   rm-db Ind _ RM,
   if (Ind = Ind2)
     (R = RM)
-    (build-Rm-args Args1 Args2 RM RSkel, 
+    (build-Rm-args Args1 Args2 RM RSkel,
      coq.elaborate-skeleton RSkel _ R ok).
 
 pred mk-equalities i:list term, i:term, i: list term, i: list term, o:list term.
@@ -35,7 +35,7 @@ mk-equalities [STy| SrcTys] ITyTy [_|Sargs] [DA|Dargs] [R|RS] :-
 
 % Ksource, Kdest, remaining args, number of type args, KRTy, Type of args Ksource, Type of args KDest, Goal,
 pred process-args i:term, i:term, i:int, i:int, i:term, i:term, i:list term, i:list term, i:term, o:term.
-process-args Ksrc Kdest 0 TyArgsNo _ Goal TySrc TyDest ITyTy R:- 
+process-args Ksrc Kdest 0 TyArgsNo _ Goal TySrc TyDest ITyTy R:-
   coq.mk-app Goal [Ksrc, Kdest, {{ Type }}] EqTy, %discards the relation between Ksrc and Kdest, we want the equality.
   % todo: change elpi.eq for trocq.idpath
   whd EqTy [] {{lib:@trocq.paths }} [ITyTy,MapA,B],
@@ -46,9 +46,9 @@ process-args Ksrc Kdest 0 TyArgsNo _ Goal TySrc TyDest ITyTy R:-
   std.drop TyArgsNo TyDestArgs DestArgs,
   coq.mk-app KDest {std.take TyArgsNo TyDestArgs} KAppTyArgs,
   mk-equalities TySrc ITyTy SrcArgs DestArgs Eqs,
-  mk-chain SrcArgs DestArgs TyDest KAppTyArgs Eqs ITyTy B R. 
-process-args Ksrc Kdest N TyArgsNo (prod AN1 A1Ty a1\ prod AN2 A2Ty a2\ prod ARN (ARTy a1 a2) ar\ (Bo a1 a2 ar)) Goal TySrc TyDest ITyTy 
-                                   (fun AN1 A1Ty a1\ fun AN2 A2Ty a2\ fun ARN (ARTy a1 a2) ar\ (RF a1 a2 ar)):- 
+  mk-chain SrcArgs DestArgs TyDest KAppTyArgs Eqs ITyTy B R.
+process-args Ksrc Kdest N TyArgsNo (prod AN1 A1Ty a1\ prod AN2 A2Ty a2\ prod ARN (ARTy a1 a2) ar\ (Bo a1 a2 ar)) Goal TySrc TyDest ITyTy
+                                   (fun AN1 A1Ty a1\ fun AN2 A2Ty a2\ fun ARN (ARTy a1 a2) ar\ (RF a1 a2 ar)):-
   M is N - 1,
   @pi-decl AN1 A1Ty a1\
   @pi-decl AN2 A2Ty a2\
@@ -65,9 +65,9 @@ process-args Ksrc Kdest N TyArgsNo (prod AN1 A1Ty a1\ prod AN2 A2Ty a2\ prod ARN
         (RF a1 a2 ar) = fun `e` (EqTy a1 a2 ar) e\ (R a1 a2 ar))
         (RF = R).
 
-% invariant: all type arguments were already processed. 
-% Constructor src, Constructor dest, Constructor dest Type, No of Arguments to process, 
-% constructorR Type, type of i2, something of type : i1 i2 iR => goal. 
+% invariant: all type arguments were already processed.
+% Constructor src, Constructor dest, Constructor dest Type, No of Arguments to process,
+% constructorR Type, type of i2, something of type : i1 i2 iR => goal.
 pred mkBranch i:term, i:term, i:int, i:term, i:term, i:term, o:term.
 mkBranch KS KD N KTyR ITyTy Goal Eq:-
   type-of-args KTyR N SrcArgs DestArgs,
@@ -81,11 +81,11 @@ mkBranches [KS|KsS] [KD|KsD] [KTy|KTys] [KTyR|KTyRs] ITyTy Goal [R|Rs] :-
   mkBranches KsS KsD KTys KTyRs ITyTy Goal Rs.
 
 pred implement-Rm i:int, i:int, i:term, i:list term, i:list term, i:list term, i:list term, i:term, i:term, o:term.
-% Pred comes with Type parameters applied 
-% RInd comes with Type parameters applied 
+% Pred comes with Type parameters applied
+% RInd comes with Type parameters applied
 implement-Rm 0 _TyParamNo (prod IN1 ITy1 i1\ prod IN2 ITy2 i2\ prod ARN (ARTy i1 i2) ar\ (Bo i1 i2 ar)) KsS KsD KTys KTyRs Pred RInd
             (fix `f` 2 RT f\ fun IN1 ITy1 i1\ fun IN2 ITy2 i2\ fun ARN (ARTy i1 i2) ar\ (R f i1 i2 ar)) :-
-  coq.safe-dest-app ITy1 Ind _, 
+  coq.safe-dest-app ITy1 Ind _,
   coq.env.global (indt GR) Ind,
   coq.env.recursive? GR, !,
   RT = (prod IN1 ITy1 i1\ prod IN2 ITy2 i2\ prod ARN (ARTy i1 i2) ar\ (Bo i1 i2 ar)),
@@ -94,7 +94,7 @@ implement-Rm 0 _TyParamNo (prod IN1 ITy1 i1\ prod IN2 ITy2 i2\ prod ARN (ARTy i1
   @pi-decl IN1 ITy1 i1\
   @pi-decl IN2 ITy2 i2\
   @pi-decl ARN (ARTy i1 i2) ar\
-    (rm-db Ind Ind f => 
+    (rm-db Ind Ind f =>
       mkBranches KsS KsD KTys KTyRs ITy2 Pred (Brs f)),
     std.append (Brs f) [i1,i2,ar] (IndArgs f i1 i2 ar),
     coq.mk-app RIndP (IndArgs f i1 i2 ar) (R f i1 i2 ar).
