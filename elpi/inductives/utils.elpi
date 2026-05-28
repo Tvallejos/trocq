@@ -186,8 +186,9 @@ rewrite-with [] [] End End.
 rewrite-with [Eq|Eqs] [Pat|Pats] End R :-
   (pi rest\
 
-  elim-into-path-suffix "paths" Suff,
-  PathIndName is {coq.gref->id {{:gref @lib:trocq.paths }}} ^ Suff,
+  coq.gref->id {{:gref @lib:trocq.paths }} PathsID,
+  elim-into-path-suffix PathsID Suff,
+  PathIndName is  PathsID ^ Suff,
   coq.locate PathIndName PathIndGR,
   coq.env.global PathIndGR PathInd,
     (T rest) = {{ lp:PathInd _ _ lp:Pat lp:rest _ lp:Eq }}),

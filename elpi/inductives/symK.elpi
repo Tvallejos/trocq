@@ -30,6 +30,7 @@ pierce-goal-symK TyParamNo N InitArgs CurrentGoal [Eq|Eqs] [Pat|Pats] EndGoal :-
 % [|K|], remaining args, number of type args, KRTy, Type of args Ksource, Type of args KDest, Goal,
 pred process-args i:term, i:term, i:term, i:int,i:int, i:int, i:term, i:list term, i:term, i:term, o:term.
 process-args KsS KsD KR 0 ArgNo TyArgsNo _ RevEqs Goal _ R:-
+  !,
   std.rev RevEqs Eqs,
   invert-eqs Eqs IEqs,
   coq.mk-app Goal [KsS,KsD,KR] SubstGoal,
@@ -52,14 +53,16 @@ process-args KsS KsD KR N O TyArgsNo (prod AN1 A1Ty a1\ prod AN2 A2Ty a2\ prod A
     coq.mk-app KsD [a2] (NewKsD a2),
     coq.mk-app KR [a1,a2,ar] (NewKR a1 a2 ar),
 
-    (param a2 a1 ar =!=>
-    whd A2Ty _ IndD _,
+    coq.safe-dest-app ITyTy Ind _,
+    coq.safe-dest-app A2Ty IndDHD _,
+    coq.env.global (indt GR) Ind,
+    if ( IndDHD = pglobal (indt GR) _) (IndD = Ind) ( IndD = IndDHD ),
     symK-db IndD SymKA2,
     coq.mk-app SymKA2 [a1, a2, ar] (SymKEq a1 a2 ar),
     std.append [(SymKEq a1 a2 ar)] Eqs (NewEqs a1 a2 ar),
+    (param a2 a1 ar =!=>
     process-args (NewKsS a1) (NewKsD a2) (NewKR a1 a2 ar) M O TyArgsNo (Bo a1 a2 ar) (NewEqs a1 a2 ar) Goal ITyTy (R a1 a2 ar)),
     % if the type of the argument is an instance of the inductive type add an induction hypothesis
-    whd ITyTy _ Ind _,
     if (Ind = IndD)
        (coq.mk-app Goal [a1, a2, ar] (EqTy a1 a2 ar),
         (RF a1 a2 ar) = fun `e` (EqTy a1 a2 ar) e\ (R a1 a2 ar))
@@ -86,7 +89,7 @@ pred implement-symK i:int, i:int, i:term, i:list term, i:list term, i:list term,
 % RInd comes with Type parameters applied
 implement-symK 0 _TyParamNo (prod IN1 ITy1 i1\ prod IN2 ITy2 i2\ prod ARN (ARTy i1 i2) ar\ (Bo i1 i2 ar)) KsS KsD KRs KTys KTyRs Pred RInd
             (fix `f` 2 RT f\ fun IN1 ITy1 i1\ fun IN2 ITy2 i2\ fun ARN (ARTy i1 i2) ar\ (R f i1 i2 ar)) :-
-  coq.safe-dest-app ITy1 Ind _,
+  coq.safe-dest-app ITy2 Ind _,
   coq.env.global (indt GR) Ind,
   coq.env.recursive? GR, !,
   RT = (prod IN1 ITy1 i1\ prod IN2 ITy2 i2\ prod ARN (ARTy i1 i2) ar\ (Bo i1 i2 ar)),

@@ -5,24 +5,24 @@ namespace derive.sym {
 
 % [|K|], remaining args, number of type args, KRTy, Type of args Ksource, Type of args KDest, Goal,
 pred process-args i:term, i:int, i:int, i:term, i:term, i:term, o:term.
-process-args KR 0 _ _ _ _ R:-
-  R = KR.
+process-args KR 0 _ _ _ _ KR.
 process-args KR N _TyArgsNo (prod AN1 A1Ty a1\ prod AN2 A2Ty a2\ prod ARN (ARTy a1 a2) ar\ (Bo a1 a2 ar)) Goal ITyTy
                                    (fun AN1 A1Ty a1\ fun AN2 A2Ty a2\ fun ARN (ARTy a1 a2) ar\ (RF a1 a2 ar)):-
   M is N - 1,
   @pi-decl AN1 A1Ty a1\
   @pi-decl AN2 A2Ty a2\
   @pi-decl ARN (ARTy a1 a2) ar\
-    whd A1Ty _ A1Ind _, %TODO: fixme for inductives with type parameters, assemble sym
-    sym-db A1Ind SymC,
+    coq.safe-dest-app A1Ty A1Ind _,
+    coq.safe-dest-app ITyTy Ind _,
+    coq.env.global (indt GR) Ind,
+    if ( A1Ind = pglobal (indt GR) _) (A1IndT = Ind) ( A1IndT = A1Ind ),
+    sym-db A1IndT SymC,
     coq.mk-app SymC [a1,a2,ar] (RA a1 a2 ar),
     coq.mk-app KR [a2,a1,(RA a1 a2 ar)] (NewKR a1 a2 ar),
     (param a2 a1 ar =!=>
     process-args (NewKR a1 a2 ar) M _ (Bo a1 a2 ar) Goal ITyTy (R a1 a2 ar)),
     % if the type of the argument is an instance of the inductive type add an induction hypothesis
-    whd ITyTy _ Ind _,
-    whd A2Ty _ IndD _,
-    if (Ind = IndD)
+    if (Ind = A1IndT)
        (coq.mk-app Goal [a1, a2, ar] (EqTy a1 a2 ar),
         (RF a1 a2 ar) = fun `e` (EqTy a1 a2 ar) e\ (R a1 a2 ar))
         (RF = R).
@@ -46,7 +46,7 @@ pred implement-sym i:int, i:int, i:term, i:list term, i:list term, i:list term, 
 % RInd comes with Type parameters applied
 implement-sym 0 _TyParamNo (prod IN1 ITy1 i1\ prod IN2 ITy2 i2\ prod ARN (ARTy i1 i2) ar\ (Bo i1 i2 ar)) KRs KTys KTyRs Pred RInd
             (fix `f` 2 RT f\ fun IN1 ITy1 i1\ fun IN2 ITy2 i2\ fun ARN (ARTy i1 i2) ar\ (R f i1 i2 ar)) :-
-  coq.safe-dest-app ITy1 Ind _,
+  coq.safe-dest-app ITy2 Ind _,
   coq.env.global (indt GR) Ind,
   coq.env.recursive? GR, !,
   RT = (prod IN1 ITy1 i1\ prod IN2 ITy2 i2\ prod ARN (ARTy i1 i2) ar\ (Bo i1 i2 ar)),
@@ -61,6 +61,7 @@ implement-sym 0 _TyParamNo (prod IN1 ITy1 i1\ prod IN2 ITy2 i2\ prod ARN (ARTy i
     coq.mk-app RIndP (IndArgs f i1 i2 ar) (R f i1 i2 ar).
 implement-sym 0 _TyParamNo (prod IN1 ITy1 i1\ prod IN2 ITy2 i2\ prod ARN (ARTy i1 i2) _) KRs KTys KTyRs Pred RInd
             (fun IN1 ITy1 i1\ fun IN2 ITy2 i2\ fun ARN (ARTy i1 i2) ar\ (R i1 i2 ar)) :-
+  !,
   coq.mk-app RInd [Pred] RIndP,
   @pi-decl IN1 ITy1 i1\
   @pi-decl IN2 ITy2 i2\

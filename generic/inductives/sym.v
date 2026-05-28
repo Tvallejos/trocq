@@ -19,6 +19,16 @@ Elpi Db derive.sym.db lp:{{
   pred sym-done o:inductive. 
 }}.
 
+#[superglobal] Elpi Accumulate derive.sym.db lp:{{ 
+
+  % refactor db dispatchers
+  sym-db I R :-
+    coq.env.global (indt GRI) I,
+    sym-def (indt GRI) GRR,
+    coq.env.global GRR R.
+
+}}.
+
 Elpi Command derive.sym.
 Elpi Accumulate File derive_hook.
 Elpi Accumulate Db Header derive.param2.db.
@@ -45,15 +55,6 @@ Elpi Accumulate lp:{{
 (* hook into derive *)
 
 
-#[superglobal] Elpi Accumulate derive.sym.db lp:{{ 
-
-  % refactor db dispatchers
-  sym-db I R :-
-    coq.env.global (indt GRI) I,
-    sym-def (indt GRI) GRR,
-    coq.env.global GRR R.
-
-}}.
 Elpi Accumulate derive Db Header derive.sym.db.
 Elpi Accumulate derive Db derive.sym.db.
 Elpi Accumulate derive File common.
