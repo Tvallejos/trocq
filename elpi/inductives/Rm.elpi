@@ -1,5 +1,6 @@
 shorten derive.common-algo.{mk-mR-type-Rm}.
 shorten derive.algo-utils.{mk-chain, type-of-args, elim-into-path-suffix}.
+shorten derive.algo-utils.{cmp-indt}.
 
 namespace derive.Rm {
 
@@ -17,10 +18,11 @@ build-Rm-args [A1|Args1] [A2|Args2] T R :-
 
 pred build-Rm i:term, i:term, o:term.
 build-Rm STy ITyTy R :-
-  coq.safe-dest-app STy Ind Args1,
-  coq.safe-dest-app ITyTy Ind2 Args2,
-  rm-db Ind _ RM,
-  if (Ind = Ind2)
+  cmp-indt STy ITyTy SInd Ind,
+  coq.safe-dest-app STy _ Args1,
+  coq.safe-dest-app ITyTy _ Args2,
+  rm-db SInd _ RM,
+  if (Ind = SInd)
     (R = RM)
     (build-Rm-args Args1 Args2 RM RSkel,
      (@keepunivs! => coq.elaborate-skeleton RSkel _ R ok)).
@@ -58,8 +60,7 @@ process-args Ksrc Kdest N TyArgsNo (prod AN1 A1Ty a1\ prod AN2 A2Ty a2\ prod ARN
     (paramR a1 a2 ar =!=>
     process-args (NewKS a1) (NewKD a2) M TyArgsNo (Bo a1 a2 ar) Goal TySrc TyDest ITyTy (R a1 a2 ar)),
     % if the type of the argument is an instance of the inductive type add an induction hypothesis
-    whd ITyTy _ Ind _,
-    whd A2Ty _ IndD _,
+    cmp-indt A2Ty ITyTy IndD Ind,
     if (Ind = IndD)
        (coq.mk-app Goal [a1, a2, ar] (EqTy a1 a2 ar),
         (RF a1 a2 ar) = fun `e` (EqTy a1 a2 ar) e\ (R a1 a2 ar))
@@ -85,7 +86,7 @@ pred implement-Rm i:int, i:int, i:term, i:list term, i:list term, i:list term, i
 % RInd comes with Type parameters applied
 implement-Rm 0 _TyParamNo (prod IN1 ITy1 i1\ prod IN2 ITy2 i2\ prod ARN (ARTy i1 i2) ar\ (Bo i1 i2 ar)) KsS KsD KTys KTyRs Pred RInd
             (fix `f` 2 RT f\ fun IN1 ITy1 i1\ fun IN2 ITy2 i2\ fun ARN (ARTy i1 i2) ar\ (R f i1 i2 ar)) :-
-  coq.safe-dest-app ITy1 Ind _,
+  coq.safe-dest-app ITy2 Ind _,
   coq.env.global (indt GR) Ind,
   coq.env.recursive? GR, !,
   RT = (prod IN1 ITy1 i1\ prod IN2 ITy2 i2\ prod ARN (ARTy i1 i2) ar\ (Bo i1 i2 ar)),

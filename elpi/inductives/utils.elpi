@@ -98,11 +98,11 @@ mk-chain SrcArgs DestArgs DestArgsTy K Eqs ITyTy RHS R :-
 % pred name-ij i:string, i:int, i:int, i:inductive, i:constructor, i:list term, i: constructor -> int -> constant -> prop, o:list prop.
 pred name-ij i:string, i:int, i:int, i:inductive, i:constructor, i:list term, i: (pred i:constructor, i:int, i:constant, o:list prop), o:list prop.
 name-ij _ _ _ _ _ [] _ [].
-name-ij FName I J GR Kn [InjTy|InjTyss] F ClausesR :-
+name-ij FName I J GR Kn [InjTyS|InjTyss] F ClausesR :-
   Jn is J + 1,
   NameIJ is {std.any->string FName} ^ {std.any->string I} ^ {std.any->string J},
-  % if declared with dropunivs recursive type polymorphic arguments fail to define injections
-  (@keepunivs! => coq.env.add-const NameIJ InjTy _ _ C),
+  (@dropunivs! => coq.elaborate-skeleton InjTyS _ InjTy ok),
+  (@dropunivs! => coq.env.add-const NameIJ InjTy _ _ C),
   (F Kn J C Clauses),
   name-ij FName I Jn GR Kn InjTyss F ClausesRec,
   std.append Clauses ClausesRec ClausesR.
@@ -196,5 +196,13 @@ rewrite-with [Eq|Eqs] [Pat|Pats] End R :-
   (@keepunivs! => coq.elaborate-skeleton RestSkel _ Rest ok),
   RSkel = (T Rest),
   (@keepunivs! => coq.elaborate-skeleton RSkel _ R Err).
+
+% checks if two types refer to the same indt, and returns a canonical one.
+pred cmp-indt i:term, i:term, o:term, o:term.
+cmp-indt T1 T2 R T2Hd:-
+    coq.safe-dest-app T1 T1Hd _,
+    coq.safe-dest-app T2 T2Hd _,
+    coq.env.global (indt GR) T2Hd,
+    if ( T1Hd = pglobal (indt GR) _) (R = T2Hd) ( R = T1Hd ).
 
 }

@@ -1,5 +1,6 @@
 shorten derive.algo-utils.{type-of-args, whd-fuel, iota-step, invert-eqs, rewrite-with}.
 shorten derive.common-algo.{mk-mR-type-symK}.
+shorten derive.algo-utils.{cmp-indt}.
 
 namespace derive.symK {
 
@@ -53,10 +54,7 @@ process-args KsS KsD KR N O TyArgsNo (prod AN1 A1Ty a1\ prod AN2 A2Ty a2\ prod A
     coq.mk-app KsD [a2] (NewKsD a2),
     coq.mk-app KR [a1,a2,ar] (NewKR a1 a2 ar),
 
-    coq.safe-dest-app ITyTy Ind _,
-    coq.safe-dest-app A2Ty IndDHD _,
-    coq.env.global (indt GR) Ind,
-    if ( IndDHD = pglobal (indt GR) _) (IndD = Ind) ( IndD = IndDHD ),
+    cmp-indt A2Ty ITyTy IndD Ind,
     symK-db IndD SymKA2,
     coq.mk-app SymKA2 [a1, a2, ar] (SymKEq a1 a2 ar),
     std.append [(SymKEq a1 a2 ar)] Eqs (NewEqs a1 a2 ar),
