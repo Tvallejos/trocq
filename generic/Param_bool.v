@@ -21,8 +21,13 @@ Unset Universe Minimization ToSet.
 
 (* Enables to generically deal with Bool
 despite one is a notation to bool and the other an inductive Bool*)
-Definition Bool := Bool.
-Elpi derive.param2 Bool.
+(* The inductive generates Bool_R = [| Bool |], 
+and the notation generates bool_R = [| Bool |]*)
+(* Since param declares monomorphic definitions [| Bool |] has to be wrapped with a universe polymorphic definition *)
+Module FakeBool.
+    Definition Bool := Bool.
+End FakeBool.
+Elpi derive.param2 FakeBool.Bool.
 
 Definition BoolR := Bool_R.
 Definition trueR := true_R.
