@@ -145,7 +145,7 @@ main GR Prefix Clauses :- std.do! [
   std.assert! (sym-db Ind SymInd) "derive.sym: use derive.sym before",
   mk-mR-type-symK TyParamNo TRTy TR SymInd SymKTy,
   (@keepunivs! => std.assert-ok! (coq.elaborate-skeleton SymKTy _ SymKTyE) "derive.symK generates illtyped type"),
-  coq.env.global (indt GRR) TR,
+  (@keepunivs! => coq.env.global (indt GRR) TR),
   coq.gref->id (indt GRR) Rname,
   RInductionName is Rname ^ "_rect",
   coq.locate RInductionName RInd,

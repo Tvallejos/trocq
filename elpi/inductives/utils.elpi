@@ -157,11 +157,13 @@ whd-fuel (pglobal (const GR) I) C M X XC :-
   O is M - 1,
   unfold GR (some I) C D DC, !, whd-fuel D DC O X XC.
 whd-fuel (primitive (proj _ N)) [A|C] M X XC :- whd-indc A _ KA, !,
-  whd-fuel {proj-red KA N C} M X XC.
+  O is M - 1,
+  whd-fuel {proj-red KA N C} O X XC.
 whd-fuel (global (const GR) as HD) C M X XC :- coq.env.primitive? GR, !,
+  O is M - 1,
   unwind HD C Orig,
   coq.reduction.lazy.whd_all Orig R,
-  if (same_term Orig R) (X = HD, XC = C) (whd-fuel R [] M X XC).
+  if (same_term Orig R) (X = HD, XC = C) (whd-fuel R [] O X XC).
 whd-fuel (match A _ L) C M X XC :- whd-indc A GR KA, !,
   whd-fuel {match-red GR KA L C} M X XC.
 whd-fuel (fix _ N _ F as Fix) C M X XC :- nth-stack N C LA A RA, whd-indc A GR KA, !,
@@ -169,9 +171,21 @@ whd-fuel (fix _ N _ F as Fix) C M X XC :- nth-stack N C LA A RA, whd-indc A GR K
 whd-fuel N C M X XC :- name N, def N _ _ V, !, cache-whd N VN V, whd-fuel VN C M X XC.
 whd-fuel X C _ X C.
 
+pred unfold-prim-proj i:term, i:stack, o:term, o:stack.
+unfold-prim-proj (let _ _ ((app [ (primitive (proj _ _)) | _ ]) as B) F) C XX CC :-
+  whd B [] B' [],
+  Hd = F B', Args = C,
+  unfold-prim-proj Hd Args XX CC.
+unfold-prim-proj X C XX CC :-
+  hd-beta X C XX CC.
+
 pred iota-step i:term, i:stack, o:term, o:stack.
 iota-step (match A _ L) C X XC :- whd-indc A GR KA, !,
  match-red GR KA L C X XC.
+% deals with primitive projections
+iota-step (let _ _ B F) C X XC :- !,
+  Hd = F B, Args = C,
+  unfold-prim-proj Hd Args X XC.
 
 pred invert-eqs i:list term, o:list term.
 invert-eqs Eqs IEqs :-
