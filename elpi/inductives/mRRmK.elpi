@@ -1,5 +1,5 @@
 shorten derive.common-algo.{mk-mR-type-mRRmK}.
-shorten derive.algo-utils.{mk-chain, for-K-get-KI,type-of-args, whd-fuel, iota-step, invert-eqs, rewrite-with, elim-into-path-suffix}.
+shorten derive.algo-utils.{mk-chain, for-K-get-KI,type-of-args, whd-fuel, iota-step, invert-eqs, rewrite-with, elim-into-path-suffix, cmp-indt}.
 
 namespace derive.mRRmK {
 
@@ -132,7 +132,7 @@ process-args Ksrc Kdest 0 InitArgs TyArgsNo _ Goal _ KR InjKs _ MRRMKEq R:-
   collect-arguments TyArgsNo InitArgs MRRM TyArgsDest Args1 Args2 Paths, %paths are all
   feed-injKs InjKs TyArgsDest Args1 Args2 Paths Eqs,
   invert-eqs Eqs IEqs,
-  std.map MRRMKEq (x\ r\ sigma TMP\ coq.elaborate-skeleton x _ TMP ok, r = TMP) MRRMKElab,
+  std.map MRRMKEq (x\ r\ sigma TMP\ @keepunivs! => coq.elaborate-skeleton x _ TMP ok, r = TMP) MRRMKElab,
   invert-eqs {std.rev MRRMKElab} IEqs2,
   End = {{ lib:@trocq.idpath lp:IRTy lp:IR }},
   coq.mk-app HD [IRTy,{whd1 MRRM},IR] RGoal, % KR a1 a2 ar1[I_Rm] b1 b2 br[I_Rm]
@@ -154,10 +154,8 @@ process-args Ksrc Kdest N InitArgs TyArgsNo (prod AN1 A1Ty a1\ prod AN2 A2Ty a2\
     (ar-db a2 a1 ar ==>
     process-args (NewKS a1) (NewKD a2) M InitArgs TyArgsNo (Bo a1 a2 ar) Goal ITyTy (NewKR a1 a2 ar) InjKs MRRMKs [(MRRMK a1 a2 ar)|MRRMKEqs] (R a1 a2 ar)),
     % if the type of the argument is an instance of the inductive type add an induction hypothesis
-    % warning fix
-    whd ITyTy _ Ind _,
-    whd A2Ty _ IndD _,
-    if (Ind = IndD)
+    cmp-indt A2Ty ITyTy A2IndT Ind,
+    if (Ind = A2IndT)
        (coq.mk-app Goal [a1, a2, ar] (EqTy a1 a2 ar),
         (RF a1 a2 ar) = fun `e` (EqTy a1 a2 ar) e\ (R a1 a2 ar))
         (RF = R).
@@ -172,10 +170,11 @@ feed-mRRmK-type [A2|Args] T R :-
 pred find-mRRmK i:list term, i:list term, i:term, o: list term.
 find-mRRmK [] [] _ [].
 find-mRRmK [STy| STys][DTy|DTys] IndTy [MRRMK|MRRMKs] :-
-  coq.safe-dest-app STy Ind2 TyArgs2,
-  coq.safe-dest-app DTy Ind TyArgs,
-  mRRmK-db Ind2 Ind MRRMKS,
-  if (IndTy = Ind)
+  cmp-indt DTy IndTy IndD Ind,
+  cmp-indt STy IndTy IndS Ind,
+  coq.safe-dest-app DTy IndD TyArgs,
+  mRRmK-db IndS IndD MRRMKS,
+  if (Ind = IndD)
     (MRRMK = MRRMKS)
     (feed-mRRmK-type TyArgs MRRMKS MRRMK),
   find-mRRmK STys DTys IndTy MRRMKs.
@@ -226,7 +225,7 @@ implement-mRRmK 0 (prod IN1 ITy1 i1\ prod IN2 ITy2 i2\ prod ARN (ARTy i1 i2) ar\
       coq.mk-app RIndP (IndArgs f i1 i2 ar) (R f i1 i2 ar),
       coq.elaborate-skeleton (R f i1 i2 ar) _ (Re f i1 i2 ar) ok.
 implement-mRRmK 0 (prod IN1 ITy1 i1\ prod IN2 ITy2 i2\ prod ARN (ARTy i1 i2) _) KsS KsD KTys KTyRs Pred RInd KRs InjKss
-            (fun IN1 ITy1 i1\ fun IN2 ITy2 i2\ fun ARN (ARTy i1 i2) ar\ (R i1 i2 ar)) :-
+            (fun IN1 ITy1 i1\ fun IN2 ITy2 i2\ fun ARN (ARTy i1 i2) ar\ (R i1 i2 ar)) :- !,
   coq.mk-app RInd [Pred] RIndP,
   @pi-decl IN1 ITy1 i1\
   @pi-decl IN2 ITy2 i2\
@@ -288,7 +287,7 @@ main GR Prefix Clauses :- std.do! [
   (@keepunivs! => coq.elaborate-skeleton R MRTyE Re ok),
   Name is Prefix ^ "mRRmK",
   coq.ensure-fresh-global-id Name FName,
-  coq.env.add-const FName Re MRTyE _ C,
+  @dropunivs! => coq.env.add-const FName Re MRTyE _ C,
   Clauses = [mRRmK-done GR, (mRRmK-def (indt GR) (const C)) ],
   std.forall Clauses (x\
     coq.elpi.accumulate _ "derive.mRRmK.db" (clause _ _ x)
