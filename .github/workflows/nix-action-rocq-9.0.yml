@@ -526,3 +526,4 @@ on:
   push:
     branches:
     - master
+    - prop
