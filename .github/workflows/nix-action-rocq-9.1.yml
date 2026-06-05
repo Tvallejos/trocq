@@ -540,7 +540,7 @@ jobs:
         name: coq-community
     - id: stepGetDerivation
       name: Getting derivation for current job (trocq-std-examples)
-      run: "NIXPKGS_ALLOW_UNFREE=1 nix-build --pure --no-out-link \\\n   --argstr bundle
+      run: "NIXPKGS_ALLOW_UNFREE=1 nix-build --no-out-link \\\n   --argstr bundle
         \"rocq-9.1\" --argstr job \"trocq-std-examples\" \\\n   --dry-run 2> err >
         out || (touch fail; true)\ncat out err\nif [ -e fail ]; then echo \"Error:
         getting derivation failed\"; exit 1; fi\n"
@@ -560,16 +560,12 @@ jobs:
       run: NIXPKGS_ALLOW_UNFREE=1 nix-build --no-out-link --argstr bundle 
         "rocq-9.1" --argstr job "trocq-std"
     - if: steps.stepCheck.outputs.status != 'fetched'
-      name: 'Building/fetching previous CI target: mathcomp-ssreflect'
-      run: NIXPKGS_ALLOW_UNFREE=1 nix-build --no-out-link --argstr bundle 
-        "rocq-9.1" --argstr job "mathcomp-ssreflect"
-    - if: steps.stepCheck.outputs.status != 'fetched'
       name: 'Building/fetching previous CI target: mathcomp-algebra'
       run: NIXPKGS_ALLOW_UNFREE=1 nix-build --no-out-link --argstr bundle 
         "rocq-9.1" --argstr job "mathcomp-algebra"
     - if: steps.stepCheck.outputs.status != 'fetched'
       name: Building/fetching current CI target
-      run: NIXPKGS_ALLOW_UNFREE=1 nix-build --pure --no-out-link --argstr bundle 
+      run: NIXPKGS_ALLOW_UNFREE=1 nix-build --no-out-link --argstr bundle 
         "rocq-9.1" --argstr job "trocq-std-examples"
 name: Nix CI for bundle rocq-9.1
 on:
