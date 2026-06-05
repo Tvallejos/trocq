@@ -582,3 +582,4 @@ on:
   push:
     branches:
     - master
+    - test-mc-algebra
