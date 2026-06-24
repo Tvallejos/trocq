@@ -3,13 +3,11 @@
 
   attribute = "trocq";
 
-  no-rocq-yet = true;
-
   default-bundle = "rocq-9.1";
 
   bundles = let
     common-bundles = {
-      coq-elpi.job = true;
+      rocq-elpi.job = true;
       trocq-std.main-job = true;
       trocq-hott.main-job = true;
     };

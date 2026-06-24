@@ -1,11 +1,11 @@
 {
   lib,
-  mkCoqDerivation,
-  coq-elpi,
+  mkRocqDerivation,
+  rocq-elpi,
   trocq,
 }:
 
-mkCoqDerivation {
+mkRocqDerivation {
   pname = "trocq-std";
   inherit (trocq) version;
 
@@ -17,6 +17,6 @@ mkCoqDerivation {
   installTargets = [ "install-std" ];
 
   propagatedBuildInputs = [
-    coq-elpi
+    rocq-elpi
   ];
 }

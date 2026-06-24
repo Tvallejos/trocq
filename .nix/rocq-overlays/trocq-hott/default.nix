@@ -1,12 +1,12 @@
 {
   lib,
-  mkCoqDerivation,
-  coq-elpi,
+  mkRocqDerivation,
+  rocq-elpi,
   HoTT,
   trocq,
 }:
 
-mkCoqDerivation {
+mkRocqDerivation {
   pname = "trocq-hott";
   inherit (trocq) version;
 
@@ -18,7 +18,7 @@ mkCoqDerivation {
   installTargets = [ "install-hott" ];
 
   propagatedBuildInputs = [
-    coq-elpi
+    rocq-elpi
     HoTT
   ];
 }

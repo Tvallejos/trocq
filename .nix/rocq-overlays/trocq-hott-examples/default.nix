@@ -1,7 +1,7 @@
 {
   lib,
   mathcomp,
-  mkCoqDerivation,
+  mkRocqDerivation,
   version ? null,
   trocq,
 }:
@@ -26,7 +26,7 @@ let
     src = lib.cleanSource source;
   };
 in
-mkCoqDerivation {
+mkRocqDerivation {
   pname = "trocq-hott-examples";
   inherit (trocq.hott) version;
 
@@ -39,7 +39,6 @@ mkCoqDerivation {
 
   propagatedBuildInputs = [
     trocq.hott
-    mathcomp.ssreflect
     mathcomp.algebra
   ];
 }
