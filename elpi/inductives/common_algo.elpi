@@ -101,7 +101,7 @@ pred mk-mR-type-priv i:int, i:term, i:term, i:term, i:term, i:int, i:list term,
 % Introducing X and Y.
 % The RHS of the equality is Y.
 mk-mR-type-priv 0 (prod IN1 ITyTy x\ prod IN2 ITyTy2 _) ML _ Rel Swap LRev _ _ _
-             (prod IN1 ITyTy x\ prod IN2 ITyTy2 y\ (R x y)) :-
+  (prod IN1 ITyTy x\ prod IN2 ITyTy2 y\ (R x y)) :-
   (Swap = 1 ; Swap = 2),
   @pi-decl IN1 ITyTy x\
   @pi-decl IN2 ITyTy2 y\
@@ -113,17 +113,17 @@ mk-mR-type-priv 0 (prod IN1 ITyTy x\ prod IN2 ITyTy2 _) ML _ Rel Swap LRev _ _ _
       coq.mk-app Rel {std.append CL [x,y]} NewRel,
       mk-return NewML NewMR NewRel Swap ITyTy2 (R x y).
 mk-mR-type-priv 0 (prod IN1 ITyTy x\ prod IN2 ITyTy2 _) _ _ Rel 4 LRev MR RM _
-             (prod IN1 ITyTy x\ prod IN2 ITyTy2 y\ prod `IR` (RelTy x y) iR\
-            (R x y iR)) :-
+  (prod IN1 ITyTy x\ prod IN2 ITyTy2 y\ prod `IR` (RelTy x y) iR\
+  (R x y iR)) :-
   std.rev LRev L,
   @pi-decl IN1 ITyTy x\
   @pi-decl IN2 ITyTy2 y\
   clean-l L CL,
   coq.mk-app Rel {std.append CL [x,y]} (RelTy x y),
   @pi-decl `IR` (RelTy x y) iR\
-      coq.mk-app RM {std.append L [x,y,iR]} (Rm x y iR),
-      coq.mk-app MR {std.append L [x,y,(Rm x y iR)]} (MRRM x y iR),
-      (R x y iR) = {{ lib:@trocq.paths _ lp:{{MRRM x y iR}} lp:iR }}.
+    coq.mk-app RM {std.append L [x,y,iR]} (Rm x y iR),
+    coq.mk-app MR {std.append L [x,y,(Rm x y iR)]} (MRRM x y iR),
+    (R x y iR) = {{ lib:@trocq.paths _ lp:{{MRRM x y iR}} lp:iR }}.
 mk-mR-type-priv 0 (prod IN1 ITyTy x\ prod IN2 ITyTy2 _) _ _ Rel 5 LRev _ _ _
              (prod IN1 ITyTy x\ prod IN2 ITyTy2 y\ (R x y)) :-
   std.rev LRev L,
